@@ -44,23 +44,22 @@ function updategold() {
 	}
 	else if(ironmining>59 && ironmining<=195) {
 		ibpt=Math.round((ironmining-59)/2.3);
-		if(ibpt==0) {
+		if(ibpt<=0) {
 			ibpt=1;
 		}
 		ibtime=60;
 	}
 	else if(ironmining>195 && ironmining<4693) {
 		ibpt=Math.round((ironmining-195)/4.5);
-		if(ibpt==0) {
+		if(ibpt<=0) {
 			ibpt=1;
 		}
 		ibtime=1;
 	}
 	else if(ironmining>=4693) {
-		ibpt=1000;
+		ibpt=1000 + Math.round((ironmining-4693)/45);
 		ibtime=1;
 	}
-
 	if(goldmining<30) {
 		goldmining=30;
 	}
@@ -467,9 +466,9 @@ function respec() {
 	}
 }
 function reforge(newtype) {
-	if(ironbar >= 1000){
+	if(ironbar >= 500){
 		weapontype = newtype;
-		ironbar -= 1000;
+		ironbar -= 500;
 		alert("Success! You now wield the "+weapontype+".");
 	}
 	else{
@@ -515,7 +514,7 @@ $(document).ready(function() {
 	items.push({"name":"music disc","price":0,"owned":0,"plural":"s","showstorage":true}); //23
 	items.push({"name":"glasses","price":0,"owned":0,"plural":"s","showstorage":false}); //24
 	items.push({"name":"shuriken","price":0,"owned":0,"plural":"s","showstorage":true}); //25
-
+	items.push({"name":"berserk potion","price":0,"owned":0,"plural":"s","showstorage":true}); //26
 	swords=[];
 	swords.push({"name":"wooden sword","power":5});
 	swords.push({"name":"stone sword","power":10});
@@ -576,7 +575,8 @@ $(document).ready(function() {
 	autoattack=false;
 	weapontype="Sword";
 	endlesswave=0;
-	
+	ovenlevel=0;
+
 	if(localStorage.thegoldfactorygamesave) {
 		dosave('loadlocalstorage');
 	}
@@ -613,7 +613,7 @@ $(document).ready(function() {
 		}
 		else {
 			closemessage();
-			makealert("buy-factory-new","The Gold Factory","Status: You are the boss! :o<br><br>You currently have <span class=\"gold-mining\">"+goldmining+"</span> mining machines.<br>Production: <span class=\"gbps\">"+gbps+"</span> gold bars / second<br><br><input type=\"button\" value=\"Buy 1 mining machine\" onclick=\"buyminingmachinegold(1)\" class=\"buy-1-mining-gold bigbutton\"> (<span class=\"1-gold-cost\">"+goldprice+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 10 mining machines\" onclick=\"buyminingmachinegold(10)\" class=\"buy-10-mining-gold bigbutton\"> (<span class=\"10-gold-cost\">"+calculateTotalPrice(goldmining, 10, golddivisor)+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 100 mining machines\" onclick=\"buyminingmachinegold(100)\" class=\"buy-100-mining-gold bigbutton\"> (<span class=\"100-gold-cost\">"+calculateTotalPrice(goldmining, 100, golddivisor)+"</span> Iron Bars)<br><br>Don't worry, the price's the same no matter how many you buy at once!<br>You can also <input type='button' value='kill rats' onclick='killrats()'>or <input type='button' value='decipher codes' onclick='ciphercode()'>.",true);
+			makealert("buy-factory-new","The Gold Factory","Status: You are the boss! :o<br><br>You currently have <span class=\"gold-mining\">"+goldmining+"</span> mining machines.<br>Production: <span class=\"gbps\">"+gbps+"</span> gold bars / second<br><br><input type=\"button\" value=\"Buy 1 mining machine\" onclick=\"buyminingmachinegold(1)\" class=\"buy-1-mining-gold bigbutton\"> (<span class=\"1-gold-cost\">"+goldprice+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 10 mining machines\" onclick=\"buyminingmachinegold(10)\" class=\"buy-10-mining-gold bigbutton\"> (<span class=\"10-gold-cost\">"+calculateTotalPrice(goldmining, 10, golddivisor)+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 100 mining machines\" onclick=\"buyminingmachinegold(100)\" class=\"buy-100-mining-gold bigbutton\"> (<span class=\"100-gold-cost\">"+calculateTotalPrice(goldmining, 100, golddivisor)+"</span> Iron Bars)<br><br>Don't worry, the total's the same no matter how many you buy at once!<br>You can also <input type='button' value='kill rats' onclick='killrats()'>or <input type='button' value='decipher codes' onclick='ciphercode()'>.",true);
 			checkitem();
 		}
 	});
@@ -656,7 +656,7 @@ $(document).ready(function() {
 		if(passworms) {
 			closemessage();
 			irontime=second2name(ibtime);
-			makealert("mining","Iron Mine","This iron mine allows you to get iron bars automatically!<br><br>You currently have <span class=\"iron-mining-amount\">"+ironmining+"</span> mining machines.<br>Production: <span class=\"ibpt\">"+ibpt+"</span> iron bar(s) / <span class=\"irontime\">"+irontime+"</span><br><br><input type=\"button\" value=\"Buy 1 mining machine\" onclick=\"buyminingmachine(1)\" class=\"buy-1-mining bigbutton\"> (<span class=\"1-iron-cost\">"+ironprice+"</span> Gold Bars)<br><input type=\"button\" value=\"Buy 10 mining machines\" onclick=\"buyminingmachine(10)\" class=\"buy-10-mining bigbutton\"> (<span class=\"10-iron-cost\">"+calculateTotalPrice(ironmining, 10, irondivisor)+"</span> Gold Bars)<br><input type=\"button\" value=\"Buy 100 mining machines\" onclick=\"buyminingmachine(100)\" class=\"buy-100-mining bigbutton\"> (<span class=\"100-iron-cost\">"+calculateTotalPrice(ironmining, 100, irondivisor)+"</span> Gold Bars)<br><br>Don't worry, the price's the same no matter how many you buy at once!<br>You can also <input type='button' value='kill iron golems' onclick='killgolems()'>for extra iron bars.",true);
+			makealert("mining","Iron Mine","This iron mine allows you to get iron bars automatically!<br><br>You currently have <span class=\"iron-mining-amount\">"+ironmining+"</span> mining machines.<br>Production: <span class=\"ibpt\">"+ibpt+"</span> iron bar(s) / <span class=\"irontime\">"+irontime+"</span><br><br><input type=\"button\" value=\"Buy 1 mining machine\" onclick=\"buyminingmachine(1)\" class=\"buy-1-mining bigbutton\"> (<span class=\"1-iron-cost\">"+ironprice+"</span> Gold Bars)<br><input type=\"button\" value=\"Buy 10 mining machines\" onclick=\"buyminingmachine(10)\" class=\"buy-10-mining bigbutton\"> (<span class=\"10-iron-cost\">"+calculateTotalPrice(ironmining, 10, irondivisor)+"</span> Gold Bars)<br><input type=\"button\" value=\"Buy 100 mining machines\" onclick=\"buyminingmachine(100)\" class=\"buy-100-mining bigbutton\"> (<span class=\"100-iron-cost\">"+calculateTotalPrice(ironmining, 100, irondivisor)+"</span> Gold Bars)<br><br>Don't worry, the total's the same no matter how many you buy at once!<br>You can also <input type='button' value='kill iron golems' onclick='killgolems()'>for extra iron bars.",true);
 			checkitem();
 		}
 	});
@@ -761,7 +761,7 @@ $(document).ready(function() {
 			entercastle();
 		}
 		else {
-			makealert("weapon-forge","The Zombie Forge","Welcome to our forge! Here, we can modify your weapon into a different one.<br><br><input type='button' value='Forge a spear' class='spear-button mediumbutton' onclick='reforge(\"Spear\")'>Very nimble, but not as strong. (1,000 Iron Bars)<br><input type='button' value='Forge a sword' class='sword-button mediumbutton' onclick='reforge(\"Sword\")'>A classic, balanced choice. (1,000 Iron Bars)<br><input type='button' value='Forge an axe' class='axe-button mediumbutton' onclick='reforge(\"Axe\")'>Very powerful, but rather slow. (1,000 Iron Bars)", true);
+			makealert("weapon-forge","The Zombie Forge","Welcome to our forge! Here, we can modify your weapon into a different one.<br><br><input type='button' value='Forge a spear' class='spear-button mediumbutton' onclick='reforge(\"Spear\")'>Very nimble, but not as strong. (500 Iron Bars)<br><input type='button' value='Forge a sword' class='sword-button mediumbutton' onclick='reforge(\"Sword\")'>A classic, balanced choice. (500 Iron Bars)<br><input type='button' value='Forge an axe' class='axe-button mediumbutton' onclick='reforge(\"Axe\")'>Very powerful, but rather slow. (500 Iron Bars)", true);
 		}
 
 	});
@@ -964,7 +964,7 @@ story="\n\
 		}
 	});
 	$(".endlessgate").click(function() {
-		makealert("endlessgate-intro", "The Gate of Endless Glory", "Welcome to the Gate of Endless Glory!<br>Fight through waves of other tough warriors to ascend the ranks!<br>Have you got what it takes to become the Glorious Champion?<br><br>You have made it through "+endlesswave.toLocaleString("en")+" waves.<br>You are currently in the Wooden Rat league.<br><br><input type='button' value='Fight!' onclick='endlessgate()' class='mediumbutton'>", true);
+		makealert("endlessgate-intro", "The Gate of Endless Glory", "Welcome to the Gate of Endless Glory!<br>Fight through waves of other tough warriors to ascend the ranks!<br>Have you got what it takes to become the Glorious Champion?<br><br>You have made it through "+endlesswave.toLocaleString("en")+" waves.<br> This gives you "+endlesswave.toLocaleString("en")+"% more gold from The Gold Factory.<br><br>You are currently in the Wooden Rat league.<br>This gives you "+Math.floor(endlesswave/5).toLocaleString("en")+"% more iron from the iron mine.<br><br><input type='button' value='Fight!' onclick='endlessgate()' class='mediumbutton'>", true);
 	});
 	let ironTimer = 0;
 	let goldTimer = 0;
@@ -983,13 +983,13 @@ story="\n\
 
 		if (ironTimer >= ibtime) {
 			let ironCycles = Math.floor(ironTimer / ibtime);
-			ironbar += ironCycles * ibpt;
+			ironbar += Math.floor((ironCycles * ibpt) * (1 + Math.floor(endlesswave/5)/100));
 			ironTimer -= ironCycles * ibtime;
 		}
 
 		if (goldTimer >= 1) {
 			let goldCycles = Math.floor(goldTimer);
-			goldbar += goldCycles * gbps;
+			goldbar += Math.floor((goldCycles * gbps) * (1 + endlesswave/100));
 			goldTimer -= goldCycles;
 		}
 
@@ -1700,7 +1700,7 @@ computer="                                            _________________\n\
 		}
 		else {
 			closemessage();
-			makealert("buy-factory-new","The Gold Factory","Status: You are the boss! :o<br><br>You currently have <span class=\"gold-mining\">"+goldmining+"</span> mining machines.<br>Production: <span class=\"gbps\">"+gbps+"</span> gold bars / second<br><br><input type=\"button\" value=\"Buy 1 mining machine\" onclick=\"buyminingmachinegold(1)\" class=\"buy-1-mining-gold bigbutton\"> (<span class=\"1-gold-cost\">"+goldprice+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 10 mining machines\" onclick=\"buyminingmachinegold(10)\" class=\"buy-10-mining-gold bigbutton\"> (<span class=\"10-gold-cost\">"+calculateTotalPrice(goldmining, 10, golddivisor)+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 100 mining machines\" onclick=\"buyminingmachinegold(100)\" class=\"buy-100-mining-gold bigbutton\"> (<span class=\"100-gold-cost\">"+calculateTotalPrice(goldmining, 100, golddivisor)+"</span> Iron Bars)<br><br>Don't worry, the price's the same no matter how many you buy at once!<br>You can also <input type='button' value='kill rats' onclick='killrats()'>or <input type='button' value='decipher codes' onclick='ciphercode()'>.",true);
+			makealert("buy-factory-new","The Gold Factory","Status: You are the boss! :o<br><br>You currently have <span class=\"gold-mining\">"+goldmining+"</span> mining machines.<br>Production: <span class=\"gbps\">"+gbps+"</span> gold bars / second<br><br><input type=\"button\" value=\"Buy 1 mining machine\" onclick=\"buyminingmachinegold(1)\" class=\"buy-1-mining-gold bigbutton\"> (<span class=\"1-gold-cost\">"+goldprice+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 10 mining machines\" onclick=\"buyminingmachinegold(10)\" class=\"buy-10-mining-gold bigbutton\"> (<span class=\"10-gold-cost\">"+calculateTotalPrice(goldmining, 10, golddivisor)+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 100 mining machines\" onclick=\"buyminingmachinegold(100)\" class=\"buy-100-mining-gold bigbutton\"> (<span class=\"100-gold-cost\">"+calculateTotalPrice(goldmining, 100, golddivisor)+"</span> Iron Bars)<br><br>Don't worry, the total's the same no matter how many you buy at once!<br>You can also <input type='button' value='kill rats' onclick='killrats()'>or <input type='button' value='decipher codes' onclick='ciphercode()'>.",true);
 			checkitem();
 		}
 		$(".ylvis-the-fox").hide();
@@ -1966,7 +1966,8 @@ function endlessgate() {
 	closemessage();
 	powerhp();
 	multiplier = 1.1**endlesswave;
-	battle=makebattle(battleid,"Placeholder McGuy",Math.round(2000 * multiplier),Math.round(2000 * multiplier),"Placeholder Sword",Math.round(100 * multiplier),"Just here for the beta. Moves fast and breaks things.",0,power,hp,hp,currentsword,false,"vs-endless-gate");
+	ratio = (0.5 - Math.random())/5;
+	battle=makebattle(battleid,"Placeholder McGuy",Math.round(2000 * multiplier * (1+ratio)),Math.round(2000 * multiplier * (1+ratio)),"Placeholder Sword",Math.round(100 * multiplier * (1-ratio)),"Just here for the beta. Moves fast and breaks things.",0,power,hp,hp,currentsword,false,"vs-endless-gate");
 	html="<div class=\"alert alert-vs-endless-gate\"><b>Wave "+(endlesswave+1).toLocaleString("en")+" - for glory!</b><br>Don't hold anything back!<br>"+battle.html+"</div>";
 	$("#otheralerts").append(html);
 	battle.init();
@@ -1992,7 +1993,7 @@ function dosave(param) {
 		}
 	}
 	else if(param=='text') {
-		prompt("Save the code somewhere safe!", btoa(goldbar+"|"+ironbar+"|"+gbps+"|"+goldmining+"|"+ibpt+"|"+ibtime+"|"+ironmining+"|"+items[0].owned+"|"+items[1].owned+"|"+items[2].owned+"|"+items[3].owned+"|"+items[4].owned+"|"+items[5].owned+"|"+items[6].owned+"|"+items[7].owned+"|"+items[8].owned+"|"+items[9].owned+"|"+items[10].owned+"|"+items[11].owned+"|"+items[12].owned+"|"+items[13].owned+"|"+items[14].owned+"|"+items[15].owned+"|"+items[16].owned+"|"+items[17].owned+"|"+items[18].owned+"|"+items[19].owned+"|"+items[20].owned+"|"+items[21].owned+"|"+items[22].owned+"|"+items[23].owned+"|"+items[24].owned+"|"+enchant_attack+"|"+enchant_defense+"|"+enchant_countdown+"|"+enchant_life+"|"+helmet+"|"+chestplate+"|"+pants+"|"+boots+"|"+theusername+"|"+theuserdesc+"|"+cheststep+"|"+searchtimes+"|"+shovelbroken+"|"+cursor+"|"+pizzaeaten+"|"+poisoned+"|"+chestunderground+"|"+talk+"|"+wob+"|"+buyfactory+"|"+skill+"|"+skilllvl+"|"+additionalattack+"|"+clickcloudcount+"|"+openchestcount+"|"+candybox+"|"+hpactive+"|"+airplanecountdown+"|"+digcountdown+"|"+digstep+"|"+currentsword+"|"+passthief+"|"+passworms+"|"+passgate+"|"+unlockenchant+"|"+unlockchest+"|"+beatboss+"|"+hasairplane+"|"+reachedclouds+"|"+defeatinvisiblebot+"|"+gethole+"|"+win+"|"+hasportal+"|"+cipherstep+"|"+activatemachine+"|"+autosave+"|"+autoattack+"|"+pizzacollected+"|"+weapontype+"|"+endlesswave)+"encrypted");
+		prompt("Save the code somewhere safe!", btoa(goldbar+"|"+ironbar+"|"+gbps+"|"+goldmining+"|"+ibpt+"|"+ibtime+"|"+ironmining+"|"+items[0].owned+"|"+items[1].owned+"|"+items[2].owned+"|"+items[3].owned+"|"+items[4].owned+"|"+items[5].owned+"|"+items[6].owned+"|"+items[7].owned+"|"+items[8].owned+"|"+items[9].owned+"|"+items[10].owned+"|"+items[11].owned+"|"+items[12].owned+"|"+items[13].owned+"|"+items[14].owned+"|"+items[15].owned+"|"+items[16].owned+"|"+items[17].owned+"|"+items[18].owned+"|"+items[19].owned+"|"+items[20].owned+"|"+items[21].owned+"|"+items[22].owned+"|"+items[23].owned+"|"+items[24].owned+"|"+enchant_attack+"|"+enchant_defense+"|"+enchant_countdown+"|"+enchant_life+"|"+helmet+"|"+chestplate+"|"+pants+"|"+boots+"|"+theusername+"|"+theuserdesc+"|"+cheststep+"|"+searchtimes+"|"+shovelbroken+"|"+cursor+"|"+pizzaeaten+"|"+poisoned+"|"+chestunderground+"|"+talk+"|"+wob+"|"+buyfactory+"|"+skill+"|"+skilllvl+"|"+additionalattack+"|"+clickcloudcount+"|"+openchestcount+"|"+candybox+"|"+hpactive+"|"+airplanecountdown+"|"+digcountdown+"|"+digstep+"|"+currentsword+"|"+passthief+"|"+passworms+"|"+passgate+"|"+unlockenchant+"|"+unlockchest+"|"+beatboss+"|"+hasairplane+"|"+reachedclouds+"|"+defeatinvisiblebot+"|"+gethole+"|"+win+"|"+hasportal+"|"+cipherstep+"|"+activatemachine+"|"+autosave+"|"+autoattack+"|"+pizzacollected+"|"+weapontype+"|"+endlesswave+"|"+ovenlevel)+"encrypted");
 	}
 	else if(param=='load') {
 		savecode=prompt("Please enter the save code", "Enter the code here");
@@ -2086,6 +2087,7 @@ function dosave(param) {
 		if(savecode.length>=80) { pizzacollected=(savecode[79] === "true"); } else { pizzacollected = false; }
 		if(savecode.length>=81) { weapontype=savecode[80]; } else { weapontype = "Sword"; }
 		if(savecode.length>=82) { endlesswave=parseInt(savecode[81]); } else { endlesswave = 0; }
+		if(savecode.length>=83) { ovenlevel=parseInt(savecode[82]); } else { ovenlevel = 0; }
 		checkthings();
 		dosave("autolocalstorage");
 		location.reload();
@@ -2177,6 +2179,7 @@ function dosave(param) {
 		if(savecode.length>=80) { pizzacollected=(savecode[79] === "true"); } else { pizzacollected = false; }
 		if(savecode.length>=81) { weapontype=savecode[80]; } else { weapontype = "Sword"; }
 		if(savecode.length>=82) { endlesswave=parseInt(savecode[81]); } else { endlesswave = 0; }
+		if(savecode.length>=83) { ovenlevel=parseInt(savecode[82]); } else { ovenlevel = 0; }
 		checkthings();
 
 	}
@@ -2186,7 +2189,7 @@ function dosave(param) {
 			alert('Update your browser, dammit, it\'s 2024 and you still don\'t have local storage! How?');
 		}
 
-		localStorage.thegoldfactorygamesave=btoa(goldbar+"|"+ironbar+"|"+gbps+"|"+goldmining+"|"+ibpt+"|"+ibtime+"|"+ironmining+"|"+items[0].owned+"|"+items[1].owned+"|"+items[2].owned+"|"+items[3].owned+"|"+items[4].owned+"|"+items[5].owned+"|"+items[6].owned+"|"+items[7].owned+"|"+items[8].owned+"|"+items[9].owned+"|"+items[10].owned+"|"+items[11].owned+"|"+items[12].owned+"|"+items[13].owned+"|"+items[14].owned+"|"+items[15].owned+"|"+items[16].owned+"|"+items[17].owned+"|"+items[18].owned+"|"+items[19].owned+"|"+items[20].owned+"|"+items[21].owned+"|"+items[22].owned+"|"+items[23].owned+"|"+items[24].owned+"|"+enchant_attack+"|"+enchant_defense+"|"+enchant_countdown+"|"+enchant_life+"|"+helmet+"|"+chestplate+"|"+pants+"|"+boots+"|"+theusername+"|"+theuserdesc+"|"+cheststep+"|"+searchtimes+"|"+shovelbroken+"|"+cursor+"|"+pizzaeaten+"|"+poisoned+"|"+chestunderground+"|"+talk+"|"+wob+"|"+buyfactory+"|"+skill+"|"+skilllvl+"|"+additionalattack+"|"+clickcloudcount+"|"+openchestcount+"|"+candybox+"|"+hpactive+"|"+airplanecountdown+"|"+digcountdown+"|"+digstep+"|"+currentsword+"|"+passthief+"|"+passworms+"|"+passgate+"|"+unlockenchant+"|"+unlockchest+"|"+beatboss+"|"+hasairplane+"|"+reachedclouds+"|"+defeatinvisiblebot+"|"+gethole+"|"+win+"|"+hasportal+"|"+cipherstep+"|"+activatemachine+"|"+autosave+"|"+autoattack+"|"+pizzacollected+"|"+weapontype+"|"+endlesswave)+"encrypted";
+		localStorage.thegoldfactorygamesave=btoa(goldbar+"|"+ironbar+"|"+gbps+"|"+goldmining+"|"+ibpt+"|"+ibtime+"|"+ironmining+"|"+items[0].owned+"|"+items[1].owned+"|"+items[2].owned+"|"+items[3].owned+"|"+items[4].owned+"|"+items[5].owned+"|"+items[6].owned+"|"+items[7].owned+"|"+items[8].owned+"|"+items[9].owned+"|"+items[10].owned+"|"+items[11].owned+"|"+items[12].owned+"|"+items[13].owned+"|"+items[14].owned+"|"+items[15].owned+"|"+items[16].owned+"|"+items[17].owned+"|"+items[18].owned+"|"+items[19].owned+"|"+items[20].owned+"|"+items[21].owned+"|"+items[22].owned+"|"+items[23].owned+"|"+items[24].owned+"|"+enchant_attack+"|"+enchant_defense+"|"+enchant_countdown+"|"+enchant_life+"|"+helmet+"|"+chestplate+"|"+pants+"|"+boots+"|"+theusername+"|"+theuserdesc+"|"+cheststep+"|"+searchtimes+"|"+shovelbroken+"|"+cursor+"|"+pizzaeaten+"|"+poisoned+"|"+chestunderground+"|"+talk+"|"+wob+"|"+buyfactory+"|"+skill+"|"+skilllvl+"|"+additionalattack+"|"+clickcloudcount+"|"+openchestcount+"|"+candybox+"|"+hpactive+"|"+airplanecountdown+"|"+digcountdown+"|"+digstep+"|"+currentsword+"|"+passthief+"|"+passworms+"|"+passgate+"|"+unlockenchant+"|"+unlockchest+"|"+beatboss+"|"+hasairplane+"|"+reachedclouds+"|"+defeatinvisiblebot+"|"+gethole+"|"+win+"|"+hasportal+"|"+cipherstep+"|"+activatemachine+"|"+autosave+"|"+autoattack+"|"+pizzacollected+"|"+weapontype+"|"+endlesswave+"|"+ovenlevel)+"encrypted";
 
 		if(changecredits) {
 			justarandomvariablename=$('#credits').html();
