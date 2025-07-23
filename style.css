@@ -797,15 +797,27 @@ body.wob input[type=button]:enabled:active
 	border-bottom:1px solid black;
 	background:white;
 	z-index:999999;
+	min-width:10%;
 }
 body.wob #storage {
 	background:#15151b;
 	border-left:1px solid white;
 	border-bottom:1px solid white;
 }
-#insidestorage {
+#insidestorage, #insideequipment {
 	padding-left:20px;
-	padding-right:50px;
+}
+#equipmentsection-char {
+	width:50%;
+	float: left;
+}
+#equipmentsection-stats {
+	width:50%;
+	float: left;
+}
+#equipmentsection-bottom {
+	width:100%;
+	clear:both;
 }
 pre[class^=dig-step-] {
 	cursor:pointer;
