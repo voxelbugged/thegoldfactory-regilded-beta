@@ -424,8 +424,9 @@ function checkitem() {
 	if(items[1].owned <= 0) { $("#hurry-dig-button").attr("disabled",true); } else { $("hurry-dig-button").removeAttr("disabled"); }
 	if(goldbar < 100) {$(".buy-wooden-shield").attr("disabled", true); } else { $(".buy-wooden-shield").removeAttr("disabled"); }
 	if(goldbar < 1000) {$(".buy-stone-shield").attr("disabled", true); } else { $(".buy-stone-shield").removeAttr("disabled"); }
-	if(goldbar < 2000) {$(".buy-iron-shield").attr("disabled", true); } else { $(".buy-iron-shield").removeAttr("disabled"); }
+	if(goldbar < 2000 || shieldlevel < 2) {$(".buy-iron-shield").attr("disabled", true); } else { $(".buy-iron-shield").removeAttr("disabled"); }
 	if(goldbar < 6000) {$(".buy-diamond-shield").attr("disabled", true); } else { $(".buy-diamond-shield").removeAttr("disabled"); }	
+	if(items[4].owned == 0) {$(".buy-iron-sword").attr("disabled", true); } else { $(".buy-iron-sword").removeAttr("disabled"); }
 }
 function buy(item,number) {
 	for(i=0;i<items.length;i++) {
@@ -455,7 +456,6 @@ function buy(item,number) {
 						$(".diamond-sword-shop").show();
 					}
 					else {
-						alert("You don't have a stone sword!");
 						valid=false;
 					}
 				}
@@ -1764,7 +1764,7 @@ man="\n\
          Oh, thank you!       O    this thing for years\n\
          As a reward, you    /|\\   but I don't know what\n\
          can have this music  |    it is used for. Maybe you\n\
-         disc. I have kept   / \\   can use it better than me!";
+         disc. I have kept   / \\   can use it better I could!";
 		$(".theman").html(man);
 		if(items[20].owned<=0) {
 			$(".give-secret-potion").hide();
@@ -1778,6 +1778,7 @@ function eatpizza() {
 			makealert("ovens-fixed","Pizza!","You have successfully fixed the ovens!<br>They are now baking one pizza for you every 5 seconds.",true);
 			checkthings();
 			pizzaeaten=true;
+			ovenlevel=3;
 		}
 		else
 		{
@@ -2337,7 +2338,7 @@ function loadgame(savecode) {
 		if(savecode.length>=86) { offhand=savecode[85]; } else { offhand = "none"; }
 		if(savecode.length>=87) { shieldlevel=parseInt(savecode[86]); } else { shieldlevel = 0; }
 		if(pizzaeaten && ovenlevel == 0) {
-			ovenlevel = 1;
+			ovenlevel = 3;
 		}
 }
 function savegame(){
@@ -2886,6 +2887,7 @@ function usepotion(pid,id,havecooldown=true) {
 		mindelay = 6
 		if(pid==15) { mindelay=10+(instasused*5); instasused++; }
 		if(pid==12) { mindelay = 3; }
+		if(pid==16) { mindelay = Math.round(Math.random() * 30); }
 		if(havecooldown){
 			potiondelay(id,mindelay)
 		}
