@@ -27,6 +27,10 @@ var pizzacollected;
 var changecredits = true;
 var ironcounter = 0;
 var shieldnames = ["Wooden Shield", "Stone Shield", "Iron Shield", "Diamond Shield"];
+var randomnames1 = ["Trog", "Gal", "Fal", "Boro", "Tho"];
+var randomnames2 = ["dor", "mir", "rin", "din", "fist"];
+var przydomki = ["Brave", "Strong", "Kinda Dumb", "Almighty", "Great"];
+var leagues = ["Wooden Rat", "Stone Thief", "Iron Golem", "Golden Ghost", "Diamond Devil", "Emerald Professor", "Glorious Champion"];
 function randomnumber(min,max) {
 	return Math.floor(Math.random()*(max-min)+min);
 }
@@ -348,7 +352,7 @@ function updatestatus() {
 	offhanddescription = "None!";
 	if(items[3].owned!=1){plural=items[3].plural;}else{plural="";}
 	$(".pizzacount").html(items[3].owned.toLocaleString("en")+" pizza"+plural);
-	$(".maxhealth").html(100 + Math.floor(items[3].owned/3.5));
+	$(".maxhealth").html(hp);
 	if(currentsword != "none"){
 		$(".currentsword").html(currentsword.substring(0, currentsword.indexOf('Sword')) + weapontype);
 	}
@@ -363,7 +367,7 @@ function updatestatus() {
 		}
 		else if(offhand == "Watch"){
 			offhandtext="Professor's Watch";
-			offhanddescription="Makes all of your countdowns 5% faster!"
+			offhanddescription="Makes all of your countdowns 10% faster!"
 		}
 		else if(offhand == "Dagger"){
 			offhandtext="Thief's Dagger";
@@ -418,6 +422,10 @@ function checkitem() {
 	if(ironbar < calculateTotalPrice(goldmining, 10, golddivisor)) { $(".buy-10-mining-gold").attr("disabled",true); } else { $(".buy-10-mining-gold").removeAttr("disabled"); }
 	if(ironbar < calculateTotalPrice(goldmining, 100, golddivisor)) { $(".buy-100-mining-gold").attr("disabled",true); } else { $(".buy-100-mining-gold").removeAttr("disabled"); }
 	if(items[1].owned <= 0) { $("#hurry-dig-button").attr("disabled",true); } else { $("hurry-dig-button").removeAttr("disabled"); }
+	if(goldbar < 100) {$(".buy-wooden-shield").attr("disabled", true); } else { $(".buy-wooden-shield").removeAttr("disabled"); }
+	if(goldbar < 1000) {$(".buy-stone-shield").attr("disabled", true); } else { $(".buy-stone-shield").removeAttr("disabled"); }
+	if(goldbar < 2000) {$(".buy-iron-shield").attr("disabled", true); } else { $(".buy-iron-shield").removeAttr("disabled"); }
+	if(goldbar < 6000) {$(".buy-diamond-shield").attr("disabled", true); } else { $(".buy-diamond-shield").removeAttr("disabled"); }	
 }
 function buy(item,number) {
 	for(i=0;i<items.length;i++) {
@@ -1039,7 +1047,7 @@ story="\n\
 		}
 	});
 	$(".endlessgate").click(function() {
-		makealert("endlessgate-intro", "The Gate of Endless Glory", "Welcome to the Gate of Endless Glory!<br>Fight through waves of other tough warriors to ascend the ranks!<br>Have you got what it takes to become the Glorious Champion?<br><br>You have made it through "+endlesswave.toLocaleString("en")+" waves.<br> This gives you "+endlesswave.toLocaleString("en")+"% more gold from The Gold Factory.<br><br>You are currently in the Wooden Rat league.<br>This gives you "+Math.floor(endlesswave/5).toLocaleString("en")+"% more iron from the iron mine.<br><br><input type='button' value='Fight!' onclick='endlessgate()' class='mediumbutton'>", true);
+		makealert("endlessgate-intro", "The Gate of Endless Glory", "Welcome to the Gate of Endless Glory!<br>Fight through waves of other tough warriors to ascend the ranks!<br>Have you got what it takes to become the Glorious Champion?<br><br>You have made it through "+endlesswave.toLocaleString("en")+" waves.<br> This gives you "+endlesswave.toLocaleString("en")+"% more gold from The Gold Factory.<br><br>You are currently in the " +getleague()+ " league.<br>This gives you "+Math.floor(endlesswave/5).toLocaleString("en")+"% more iron from the iron mine.<br><br><input type='button' value='Fight!' onclick='endlessgate()' class='mediumbutton'>", true);
 	});
 	let ironTimer = 0;
 	let goldTimer = 0;
@@ -1183,10 +1191,23 @@ function powerhp() {
 	if(weapontype == "Maul"){
 		power = Math.round(power*2);
 	}
-	hp=100;
-	hp+=Math.floor(items[3].owned/3.5);
-	thisismyhp=100;
-	thisismyhp+=Math.floor(items[3].owned/3.5);
+	let x = items[3].owned;
+	hp = 100;
+	if (x <= 3500) {
+		hp += x / 3.5;
+	} else {
+		hp += 1000;
+		let remainingItems = x - 3500;
+		let costPer1000HP = 3500;
+
+		while (remainingItems >= costPer1000HP) {
+			remainingItems -= costPer1000HP;
+			hp += 1000;
+			costPer1000HP *= 2;
+		}
+		hp += remainingItems / costPer1000HP * 1000;
+	}
+	hp=Math.floor(hp);
 	attackspeed = (1000 - enchant_countdown*100)
 	if(weapontype == "Spear") {
 		attackspeed = Math.round(attackspeed * 0.8);
@@ -1198,7 +1219,7 @@ function powerhp() {
 		attackspeed = Math.round(attackspeed * 1.5);
 	}
 	if(offhand == "Watch") {
-		attackspeed = Math.round(attackspeed * 0.95);
+		attackspeed = Math.round(attackspeed * 0.9);
 	}
 }
 function testskill() {
@@ -2134,13 +2155,21 @@ function openthechest() {
 		}
 	}
 }
-
+function getleague() {
+	if((endlesswave/5)<leagues.length){
+		return leagues[Math.floor(endlesswave/5)];
+	}
+	else{
+		return leagues[leagues.length-1];
+	}
+}
 function endlessgate() {
 	closemessage();
 	powerhp();
 	multiplier = 1.1**endlesswave;
 	ratio = (0.5 - Math.random())/5;
-	battle=makebattle(battleid,"Placeholder McGuy",Math.round(2000 * multiplier * (1+ratio)),Math.round(2000 * multiplier * (1+ratio)),"Placeholder Sword",Math.round(100 * multiplier * (1-ratio)),"Just here for the beta. Moves fast and breaks things.",0,power,hp,hp,currentsword,false,"vs-endless-gate");
+	gladiatorname = randomnames1[Math.floor(Math.random()*randomnames1.length)] + randomnames2[Math.floor(Math.random()*randomnames2.length)] + " the " + przydomki[Math.floor(Math.random()*przydomki.length)];
+	battle=makebattle(battleid,gladiatorname,Math.round(2000 * multiplier * (1+ratio)),Math.round(2000 * multiplier * (1+ratio)),"Standard-issue Sword",Math.round(100 * multiplier * (1-ratio)),"This is not you.",0,power,hp,hp,currentsword,false,"vs-endless-gate");
 	html="<div class=\"alert alert-vs-endless-gate\"><b>Wave "+(endlesswave+1).toLocaleString("en")+" - for glory!</b><br>Don't hold anything back!<br>"+battle.html+"</div>";
 	$("#otheralerts").append(html);
 	battle.init();
@@ -2895,12 +2924,13 @@ function usepotion(pid,id,havecooldown=true) {
 			skilldelay(id,0);
 		}
 		else if(pid==16) {
-			rand = Math.round(Math.random()*(100+Math.floor(items[3].owned/3.5)));
+			rand = Math.round(Math.random()*hp);
 			myhealthpoint(true,rand);
 			$(".player-"+id+"-hp").html(rand.toLocaleString("en"));
 		}
 		else if(pid==17) {
-			prompt("What the...","MS4wMzkzfHwxMzc4ODMwNjMyODc2O05hTjsxMzgzMjM5MTM4NTc1fDAwMTEwMHwxOTI5ODUyNzY5LjA2MDA1NTs3MDY0MjEyNzE3NDkuMTAyMzs4Mjk3OzE5OzEzODI1NTk5NDIxLjg4MTQ0Mzs4MDstMTstMTswOzA7MDswOzY3OzQ3OTY5OzA7MDswOzB8MTI4LDEyOSw3Njg0NTM2MjE3LDA7MTA1LDEwNiwyMzc2Njc5MzIwLDA7MTAxLDEwMSw1NDE3MzU5OCwwOzEwMSwxMDEsMjM5MDExOTgxLDE7ODIsODIsNjEzNDEwODI2LDA7NTgsNTgsMTQxNDg4MTkyNiwwOzUwLDUwLDI4MzExMzI1NzIsMDs1MCw1MCw0MDU2NjYyNTI3MywwOzI3LDI3LDY2NDU0OTU1NDYwLDA7MTYsMTYsMjI3NzgyMzIwNDU0LDA7fDQ1MDM1OTk2MjczNzA0OTU7NDUwMzEwMDMzNzQyMjMzNTsyMjUxODM0MTczNDAxNzAzOzM5NDA2NDk2NzM5NTk5MzU7MjI1MTc5OTk0NTgwNTk2MzsxMzc0Mzg5NTM0NzN8NDUwMzA0Nzc5MTA4MzUxOTsyMzkyODE2NzQwMTEyMDkxOzEwMjU%3D%21END%21");
+			blab = ["Cookie crumbliness x3 for 60 seconds!", "Chocolatiness x7 for 77 seconds!", "Dough elasticity halved for 66 seconds!", "Chocolate chips reshuffled!", "World economy halved for 30 seconds!", "They know."]
+			alert(blab[Math.floor(Math.random()*blab.length)]);
 		}
 		else if(pid==18) {
 			rand=Math.round(Math.random()*1000);
@@ -2920,7 +2950,7 @@ function potiondelay(id,sec) {
 		sec--;
 		timeoutdelay = 1000;
 		if(offhand == "Watch"){
-			timeoutdelay = timeoutdelay * 0.95;
+			timeoutdelay = timeoutdelay * 0.9;
 		}
 		potiontimeout = setTimeout(function(){potiondelay(id,sec);},timeoutdelay);
 	}
@@ -2937,7 +2967,7 @@ function skilldelay(id,sec) {
 		sec--;
 		timeoutdelay = 1000;
 		if(offhand == "Watch"){
-			timeoutdelay = timeoutdelay * 0.95;
+			timeoutdelay = timeoutdelay * 0.9;
 		}
 		skilltimeout=setTimeout(function(){skilldelay(id,sec);},timeoutdelay);
 	}
@@ -2954,7 +2984,7 @@ function healthdelay(id,sec) {
 		sec--;
 		timeoutdelay = 1000;
 		if(offhand == "Watch"){
-			timeoutdelay = timeoutdelay * 0.95;
+			timeoutdelay = timeoutdelay * 0.9;
 		}
 		healthtimeout=setTimeout(function(){healthdelay(id,sec);},timeoutdelay);
 	}
@@ -3011,7 +3041,7 @@ function winbattle(param,id) {
 	$(".flee-button").attr("disabled",true);
 	setTimeout(function() {winningbattle = false;}, 2000);
 	myfinalhp=myhealthpoint(false,0);
-	myhealthpoint(true,100+Math.floor(items[3].owned/3.5));
+	myhealthpoint(true,hp);
 	battle_ended();
 	if(param=="vs-thief") {
 		passthief=true;
@@ -3147,7 +3177,7 @@ scroll='\n\
 	else if(param=="vs-golem"){
 		closemessage();
 		reward=Math.ceil(enemyhealthpoint2(false,0)/10);
-		makealert("win-vs-rat","Goodbye, Golem!","You killed the golem, and it shattered into "+reward+" iron bars!<br><br><input type='button' value=\"Kill more golems!\" class='mediumbutton' onclick='battlevsgolems()'>",true);
+		makealert("win-vs-golem","Goodbye, Golem!","You killed the golem, and it shattered into "+reward+" iron bars!<br><br><input type='button' value=\"Kill more golems!\" class='mediumbutton' onclick='battlevsgolems()'>",true);
 	}
 	else if(param=="vs-shark"){
 		closemessage();
@@ -3160,6 +3190,11 @@ scroll='\n\
 		reward=enemyhealthpoint2(false,0);
 		goldbar+=reward;
 		ironbar+=Math.floor(reward/2);
+		leagueinfo="";
+		if(endlesswave%5==0){
+			leagueinfo="<br>You have advanced to the "+getleague()+" league!";
+		}
+		makealert("win-vs-gate","Wave Complete!","You defeated the enemy! You got "+reward+" gold bars and "+Math.floor(reward/2)+" iron bars!<br><br><input type='button' value=\"Go again!\" class='mediumbutton' onclick='endlessgate()'>"+leagueinfo,true);
 	}
 	if(param!="vs-rat" && param!="training"){
 		reward=enemyhealthpoint2(false,0);
@@ -3168,7 +3203,6 @@ scroll='\n\
 	if(param!="training" && additionalattack > 0){
 		additionalattack--;
 	}
-
 }
 
 /* DIGGING SYSTEM */
@@ -3536,8 +3570,19 @@ function battlevsrats() {
 	if(items[2].owned!=0) {
 		closemessage();
 		powerhp();
-		hpdivide=Math.ceil(hp/4.5);
-		battle=makebattle(battleid,"A Rat",hp-hpdivide,hp-hpdivide,"Its body",basepower-Math.ceil(basepower/2.5),"An annoying rat.",11,power,hp,hp,currentsword,false,"vs-rat");
+		hpdivide=hp/5;
+		ratio = (0.5 - Math.random())/5;
+		ratname="A Rat";
+		ratdesc="An annoying rat."
+		if(ratio > 0.05){
+			ratname="Fat Rat"
+			ratdesc="Makes all of the rules."
+		}
+		if(ratio < -0.05){
+			ratname="Mad Rat"
+			ratdesc="Thinks the gold is cheese."
+		}
+		battle=makebattle(battleid,ratname,Math.round((hp-hpdivide)*(1+ratio)),Math.round((hp-hpdivide)*(1+ratio)),"Its body",Math.round((basepower-basepower/5)*(1-ratio)),ratdesc,11,power,hp,hp,currentsword,false,"vs-rat");
 		html="<div class=\"alert alert-battle-rats\"><b>Rat!</b><br>Kill it!!<br><br>"+battle.html+"</div>";
 		$("#otheralerts").append(html);
 		battle.init();
@@ -3548,8 +3593,19 @@ function battlevsgolems() {
 	if(items[2].owned!=0) {
 		closemessage();
 		powerhp();
-		hpdivide=Math.ceil(hp/5);
-		battle=makebattle(battleid,"Iron Golem",hp+hpdivide,hp+hpdivide,"Iron Hands",basepower+Math.ceil(basepower/5),'Bringing a new meaning to "cold iron."',5,power,hp,hp,currentsword,false,"vs-golem");
+		hpdivide=hp/5;
+		ratio = (0.5 - Math.random())/5;
+		golemname="Iron Golem";
+		golemdesc="Bringing a new meaning to cold iron.";
+		if(ratio > 0.05){
+			ratname="Heavy Golem"
+			ratdesc="How it moves, we're not sure."
+		}
+		if(ratio < -0.05){
+			ratname="Molten Golem"
+			ratdesc="Strike while the iron is hot!"
+		}
+		battle=makebattle(battleid,golemname,Math.round((hp+hpdivide)*(1+ratio)),Math.round((hp+hpdivide)*(1+ratio)),"Iron Hands",Math.round((basepower+basepower/5)*(1-ratio)),golemdesc,5,power,hp,hp,currentsword,false,"vs-golem");
 		html="<div class=\"alert alert-battle-golems\"><b>Golem!</b><br>Destroy it!<br><br>"+battle.html+"</div>";
 		$("#otheralerts").append(html);
 		battle.init();
