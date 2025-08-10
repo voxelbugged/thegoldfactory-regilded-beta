@@ -954,6 +954,11 @@ body.wob #credits {
 	color:#5865F2;
 	text-decoration:none;
 }
+.donate {
+	font-weight:bold;
+	color:#f96854;
+	text-decoration:none;
+}
 body.wob .reddit {
 	font-weight:bold;
 	color:#FF4500;
@@ -962,6 +967,11 @@ body.wob .reddit {
 body.wob .discord {
 	font-weight:bold;
 	color:#5865F2;
+	text-decoration:none;
+}
+body.wob .donate {
+	font-weight:bold;
+	color:#f96854;
 	text-decoration:none;
 }
 .dec2021msg {
