@@ -787,12 +787,13 @@ $(document).ready(function() {
 	$(".training-center").click(function() {
 		if(passworms) {
 			closemessage();
-			if(skill!="none") {
-				makealert("training-center","Training Center","Welcome to the training center!<br>Here, you can test your abilities or learn a new one.<br>Your temporary damage boost from training is currently "+additionalattack+".<br><br><input type=\"button\" value=\"Test your skill\" onclick=\"testskill()\" class=\"training-button mediumbutton\"> (100 Gold Bars)<br><input type=\"button\" value=\"Upgrade your skill\" onclick=\"upgradeskill()\" class=\"upgrade-skill mediumbutton\">",true)
+			if(skill!="none"){
+				skillbuttonelement = "<input type=\"button\" value=\"Upgrade your skill\" onclick=\"upgradeskill()\" class=\"upgrade-skill mediumbutton\">";
 			}
-			else {
-				makealert("training-center","Training Center","Welcome to the training center!<br>Here, you can test your abilities or learn a new one.<br>Your temporary damage boost from training is currently "+additionalattack+".<br><br><input type=\"button\" value=\"Test your skill\" onclick=\"testskill()\" class=\"training-button mediumbutton\"> (100 Gold Bars)<br><input type=\"button\" value=\"Learn a new skill\" onclick=\"learnnewskill()\" class=\"new-skill mediumbutton\">",true)
+			else{
+				skillbuttonelement = "<input type=\"button\" value=\"Learn a new skill\" onclick=\"learnnewskill()\" class=\"new-skill mediumbutton\">";
 			}
+				makealert("training-center","Training Center","Welcome to the training center!<br>Here, you can test your abilities, or learn a new one.<br><br>Your temporary damage boost from training is currently "+additionalattack+".<br>This value is halved every time you win a battle.<br><br><input type=\"button\" value=\"Test your skill\" onclick=\"testskill()\" class=\"training-button mediumbutton\"> (100 Gold Bars)<br>"+skillbuttonelement+"<br><br>Tip: The stronger you are, the more extra damage you will get from training!",true)
 		}
 	});
 	$(".mining").click(function() {
@@ -1293,7 +1294,7 @@ function testskill() {
 		hpdivide10=Math.ceil(hp/10);
 		closemessage();
 		battle=makebattle(battleid,"Training Robot",hp+hpdivide10,hp+hpdivide10,"Short ranged laser!",basepower+Math.ceil(basepower/10),"A training robot",2,power,hp,hp,currentsword,false,"training");
-		html="<div class=\"alert alert-training\"><b>Test your skill!</b><br>Let's see how strong you are!<br>Winning will give you a temporary damage boost.<br><br>"+battle.html+"</div>";
+		html="<div class=\"alert alert-training\"><b>Test your skill!</b><br>Let's see how strong you are!<br>Winning will add "+(1 + Math.floor(hp/200))+" to your training damage boost.<br><br>"+battle.html+"</div>";
 		$("#otheralerts").append(html);
 		battle.init();
 		$(".alert-training:last").fadeIn("fast");
@@ -2032,34 +2033,40 @@ computer="                                            _________________\n\
 }
 
 function searchsand() {
-	random=randomnumber(10,31);
-	if(random==10 || random == 11) {
-		r=randomnumber(100,1000);
-		goldbar+=r;
-		$(".search-result").html("You got "+r+" gold bars!");
+	if(searchtimes != 16){
+		random=randomnumber(10,31);
+		if(random==10 || random == 11) {
+			r=randomnumber(100,1000);
+			goldbar+=r;
+			$(".search-result").html("You got "+r+" gold bars!");
+		}
+		else if(random==15 || random == 16) {
+			r=randomnumber(100,1000);
+			ironbar+=r;
+			$(".search-result").html("You got "+r+" iron bars!");
+		}
+		else if(random==20 || random == 21) {
+			r=randomnumber(2,5);
+			items[7].owned+=r;
+			$(".search-result").html("You got "+r+" health potions!");
+		}
+		else if (random==17) {
+			closemessage();
+			powerhp();
+			battle=makebattle(battleid,"Sand Shark",750,750,"Fins & teeth",100,"How it swims, no one knows.",12,power,hp,hp,currentsword,false,"vs-shark");
+			html="<div class=\"alert alert-shark-fight\"><b>Surprise!</b><br>You have found a wild sand shark! It won't let you flee!<br><br>"+battle.html+"</div>";
+			$("#otheralerts").append(html);
+			battle.init();
+			$(".alert-shark-fight:last").fadeIn("fast");
+			$(".flee-button").attr("disabled",true);
+		}
+		else {
+			$(".search-result").html("You got nothing :(");
+		}
 	}
-	else if(random==15 || random == 16) {
-		r=randomnumber(100,1000);
-		ironbar+=r;
-		$(".search-result").html("You got "+r+" iron bars!");
-	}
-	else if(random==20 || random == 21) {
-		r=randomnumber(2,5);
-		items[7].owned+=r;
-		$(".search-result").html("You got "+r+" health potions!");
-	}
-	else if (random==17) {
+	else{
 		closemessage();
-		powerhp();
-		battle=makebattle(battleid,"Sand Shark",750,750,"Fins & teeth",100,"How it swims, no one knows.",12,power,hp,hp,currentsword,false,"vs-shark");
-		html="<div class=\"alert alert-shark-fight\"><b>Surprise!</b><br>You have found a wild sand shark! It won't let you flee!<br><br>"+battle.html+"</div>";
-		$("#otheralerts").append(html);
-		battle.init();
-		$(".alert-shark-fight:last").fadeIn("fast");
-		$(".flee-button").attr("disabled",true);
-	}
-	else {
-		$(".search-result").html("You got nothing :(");
+		makealert("sash","What's this?","It seems that another, less fortunate adventurer has been here before you.<br>Free stuff!<br><br>You got a new offhand item - the Sand Sash!",true);
 	}
 	searchtimes++;
 }
@@ -2226,11 +2233,12 @@ function openthechest() {
 	}
 }
 function getleague() {
-	if((endlesswave/5)<leagues.length){
+	if((endlesswave/5)<leagues.length-1){
 		return leagues[Math.floor(endlesswave/5)];
 	}
 	else{
-		return leagues[leagues.length-1];
+		number = Math.floor(endlesswave/5) - 5;
+		return leagues[leagues.length-1] + " " + romanize(number);
 	}
 }
 function endlessgate() {
@@ -2640,13 +2648,17 @@ output="<table id=\"battle-"+id+"\">"+output2+"</table><br><div class=\"buttons-
 <input type=\"button\" value=\"Toggle auto-attack\" class='mediumbutton flee-button' onclick=\"toggleautoattack("+id+");\">";
 	if(hp<=0) {
 		if(id != winningid) {
+			battlestop(true, true);
+			stop_battle_timers();
 			setTimeout(function(){winbattle(param,id);},1000);
 			winningid=id;
 		}
 	}
 	else if(myhp<=0) {
 		//lose
-		setTimeout(function(){closemessage(); battle_ended();},1000);
+		battlestop(true, true);
+		stop_battle_timers();
+		setTimeout(function(){closemessage(); lose_battle();},1000);
 	}
 	else {
 		instasused = 0;
@@ -2716,7 +2728,9 @@ function enemyattack(id,damage) {
 	else {
 		$(".button-health-"+id).attr("onclick","drinkhealthpotion("+id+","+myhealthpoint(false,0)+")");
 		if(myhealthpoint(false,0)<=0) {
-			setTimeout(function(){closemessage(); battle_ended();},0);
+			battlestop(true, true);
+			stop_battle_timers();
+			setTimeout(function(){closemessage(); lose_battle();},1000);
 			//clearTiemout(asdasdf);
 		}
 		else {
@@ -2743,6 +2757,8 @@ function enemyattack(id,damage) {
 								$(".enemy-"+id+"-hp").html("0");
 								$(".button-attack-"+id).attr("disabled",true);
 								if(id!=winningid){
+									battlestop(true, true);
+									stop_battle_timers();
 									setTimeout(function(){winbattle(theparam(false,0),id);},1000);
 									winningid = id;
 								}
@@ -2809,6 +2825,8 @@ function attackenemy(id,power,hp,param,mymaxhp) {
 	if(enemyhealthpoint(false,0)<=0) {
 		enemyattack("clear",0);
 		if(id != winningid){
+			battlestop(true, true);
+			stop_battle_timers();
 			setTimeout(function(){winbattle(param,id);},1000);
 			winningid = id;
 		}
@@ -2955,6 +2973,8 @@ function usetheskill(id) {
 			setTimeout(function() {
 				$(".thunder-"+id).css("opacity","0");
 				if(enemyhealthpoint(false,0)<=0 && id != winningid) {
+					battlestop(true, true);
+					stop_battle_timers();
 					setTimeout(function(){winbattle(theparam(false,0),id);},1000);
 					winningid = id;
 				}
@@ -3004,6 +3024,8 @@ function usepotion(pid,id,havecooldown=true) {
 			enemyhealthpoint(true,hp);
 			$(".enemy-"+id+"-hp").html(hp.toLocaleString("en"));
 			if(enemyhealthpoint(false,0)<=0 && id != winningid) {
+				battlestop(true, true);
+				stop_battle_timers();
 				setTimeout(function(){winbattle(theparam(false,0),id);},1000);
 				winningid = id;
 			}
@@ -3132,6 +3154,11 @@ function battle_ended() {
 	removeBattle(battleid);
 	battleid++;
 }
+function lose_battle(){
+	battle_ended();
+	closemessage();
+	makealert("you-lost","You lost! :(","Better luck next time!",true);
+}
 
 function myhealthpoint(set,health) { if(!set) { return myhp; } else { myhp=health; } }
 function enemyhealthpoint(set,health) { if(!set) { return enemyhp; } else { enemyhp=health; } }
@@ -3162,7 +3189,9 @@ function winbattle(param,id) {
 	}
 	else if(param=="training"){
 		closemessage();
-		additionalattack+=1;
+		powerhp();
+		additionalattackincrease = 1 + Math.floor(hp/200);
+		additionalattack+=additionalattackincrease;
 		checkthings();
 	}
 	else if(param=="vs-monster"){
@@ -3312,7 +3341,7 @@ scroll='\n\
 		goldbar+=reward;
 	}
 	if(param!="training" && additionalattack > 0){
-		additionalattack--;
+		additionalattack = Math.floor(additionalattack/2);
 	}
 }
 
@@ -3861,4 +3890,15 @@ function snacks(tosnack){
 		position: "tm",
 		fixed: true
 	});
+}
+
+function romanize(num) {
+  var lookup = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1},roman = '',i;
+  for ( i in lookup ) {
+    while ( num >= lookup[i] ) {
+      roman += i;
+      num -= lookup[i];
+    }
+  }
+  return roman;
 }
