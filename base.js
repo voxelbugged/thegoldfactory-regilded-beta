@@ -27,13 +27,14 @@ var pizzacollected;
 var changecredits = true;
 var ironcounter = 0;
 var shieldnames = ["Wooden Shield", "Stone Shield", "Iron Shield", "Diamond Shield"];
-var randomnames1 = ["Trog", "Gal", "Fal", "Boro", "Tho", "Nir"];
-var randomnames2 = ["dor", "mir", "rin", "din", "fist", "moll"];
-var przydomki = ["Brave", "Strong", "Kinda Dumb", "Almighty", "Great"];
+var randomnames1 = ["Trog", "Gal", "Fal", "Boro", "Tho", "Dre", "Nir"];
+var randomnames2 = ["dor", "mir", "rin", "din", "fist", "mu", "moll"];
+var przydomki = ["Brave", "Strong", "Kinda Dumb", "Almighty", "Great", "Alive", "Strange"];
 var leagues = ["Wooden Rat", "Stone Thief", "Iron Golem", "Golden Ghost", "Diamond Devil", "Emerald Professor", "Glorious Champion"];
 var spentonenchant = 0;
 var winningid = 0;
 var enemyspeed = 1;
+var glorylayout = [0, 0, 0];
 function randomnumber(min,max) {
 	return Math.floor(Math.random()*(max-min)+min);
 }
@@ -424,15 +425,15 @@ function updatestatus() {
 	}
 	if(skill == "invuln") {
 		skillinfo="Invulnerability (Level "+skilllvl.toLocaleString("en")+")";
-		skilldesc="<br>Skill Description: Makes you temporarily take 66% less damage.";
-		skilleffect="<br>Skill Duration: "+(3+skilllvl).toLocaleString("en")+" seconds.";
-		skillcooldown="<br>Skill Cooldown: "+(20+3+skilllvl).toLocaleString("en")+" seconds.";
+		skilldesc="<br>Description: Makes you temporarily take 66% less damage.";
+		skilleffect="<br>Duration: "+(3+skilllvl).toLocaleString("en")+" seconds.";
+		skillcooldown="<br>Cooldown: "+(20+3+skilllvl).toLocaleString("en")+" seconds.";
 	}
 	if(skill == "thunder") {
 		skillinfo="Thunder Bolt (Level "+skilllvl.toLocaleString("en")+")";
-		skilldesc="<br>Skill Description: Deals instant damage to the enemy. Simple!";
-		skilleffect="<br>Skill Damage: "+(20*(skilllvl+1)).toLocaleString("en")+" damage.";
-		skillcooldown="<br>Skill Cooldown: 20 seconds.";
+		skilldesc="<br>Description: Deals instant damage to the enemy. Simple!";
+		skilleffect="<br>Damage: "+(20*(skilllvl+1)).toLocaleString("en")+" damage.";
+		skillcooldown="<br>Cooldown: 20 seconds.";
 	}
 	$("#armorinfo").html(armorinfo);
 	$("#skillinfo").html(skillinfo);
@@ -982,8 +983,8 @@ man="\n\
 	$(".nametag").click(function() {
 		makealert("name-tag","Name Tag","You found a name tag!<br>You can now change your name and description in battles!<br><br>Name: <input type='text' id='yourname' value='"+theusername+"'><br>Description: <input type='text' id='yourdesc' value='"+theuserdesc+"'><br><br>WARNING: Inserting an extremely long name/description or adding some wild characters may corrupt your save file!",true);
 		namedesc=setInterval(function() {
-			theusername=$("#yourname").val();
-			theuserdesc=$("#yourdesc").val();
+			theusername=HtmlSanitizer.SanitizeHtml($("#yourname").val().substring(0, 32));
+			theuserdesc=HtmlSanitizer.SanitizeHtml($("#yourdesc").val().substring(0, 32));
 		},100);
 	});
 	$(".chest-dig").click(function() {
@@ -1124,7 +1125,7 @@ story="\n\
 		else{
 			championblurb = "You are the Champion! :o";
 		}
-		makealert("endlessgate-intro", "The Gate of Endless Glory", "Welcome to the Gate of Endless Glory!<br>Fight through waves of other tough warriors to ascend the ranks!<br>"+championblurb+"<br><br>You have made it through "+endlesswave.toLocaleString("en")+" waves.<br> This gives you "+endlesswave.toLocaleString("en")+"% more gold from The Gold Factory.<br><br>You are currently in the " +getleague()+ " league.<br>This gives you "+Math.floor(endlesswave/5).toLocaleString("en")+"% more iron from the iron mine.<br><br><input type='button' value='Fight!' onclick='endlessgate()' class='mediumbutton'>", true);
+		makealert("endlessgate-intro", "The Gate of Endless Glory", "Welcome to the Gate of Endless Glory!<br>Fight through waves of other tough warriors to ascend the ranks!<br>"+championblurb+"<br><br>You have made it through "+endlesswave.toLocaleString("en")+" waves.<br>You are in the " +getleague()+ " league.<br>This gives you "+Math.floor(endlesswave/5).toLocaleString("en")+" Glory Points to distribute.<br><br><input type='button' value='Fight!' onclick='endlessgate()' class='mediumbutton'><br><input type='button' value='Assign Points' onclick='glorypoints()' class='mediumbutton'>", true);
 	});
 	let ironTimer = 0;
 	let goldTimer = 0;
@@ -1145,13 +1146,13 @@ story="\n\
 
 		if (ironTimer >= ibtime) {
 			let ironCycles = Math.floor(ironTimer / ibtime);
-			ironbar += Math.floor((ironCycles * ibpt) * (1 + Math.floor(endlesswave/5)/100));
+			ironbar += Math.floor((ironCycles * ibpt) * (1 + glorylayout[1]*0.05));
 			ironTimer -= ironCycles * ibtime;
 		}
 
 		if (goldTimer >= 1) {
 			let goldCycles = Math.floor(goldTimer);
-			goldbar += Math.floor((goldCycles * gbps) * (1 + endlesswave/100));
+			goldbar += Math.floor((goldCycles * gbps) * (1 + glorylayout[0]*0.05));
 			goldTimer -= goldCycles;
 		}
 
@@ -1164,7 +1165,7 @@ story="\n\
 		if (pizzaTimer >= 5) {
 			let pizzaCycles = Math.floor(pizzaTimer / 5);
 			if(pizzaeaten) {
-				items[3].owned += pizzaCycles * Math.floor(ovenlevel/3);
+				items[3].owned += Math.floor(pizzaCycles * Math.floor(ovenlevel/3) * (1 + glorylayout[2]*0.05));
 			}
 			pizzaTimer -= pizzaCycles * 5;
 		}
@@ -1576,7 +1577,7 @@ function enterportal(step,thehp2) {
 				battle=makebattle(battleid,"Ghost",350,350,"Invisible hands",25,"A Ghost, nothing else.",4,power,hp,maxhp,currentsword,false,"in-the-nether-"+step);
 			}
 			else if(therand==3) {
-				battle=makebattle(battleid,"Giant",650,650,"Big hand",30,"Bam, bam, bam.",5,power,hp,maxhp,currentsword,false,"in-the-nether-"+step, 1.2);
+				battle=makebattle(battleid,"Giant",650,650,"Big hand",50,"Bam, bam, bam.",5,power,hp,maxhp,currentsword,false,"in-the-nether-"+step, 1.2);
 			}
 			else if(therand==4) {
 				battle=makebattle(battleid,"Unicorn",400,400,"Horn",30,"Unicorn! Yay! :D",6,power,hp,maxhp,currentsword,false,"in-the-nether-"+step, 0.8);
@@ -2308,6 +2309,9 @@ function endlessgate() {
 	battle.init();
 	$(".alert-vs-endless-gate:last").fadeIn("fast");
 }
+function glorypoints() {
+	makealert("glory-points", "Glory Points", "Assign the Glory Points you have earned to power up your machines!<br>You have assigned "+(glorylayout[0] + glorylayout[1] + glorylayout[2])+" out of "+Math.floor(endlesswave/5).toLocaleString("en")+" Glory Points.", true);
+}
 function localstoragehelp() {
 	snacks('It\'s a feature that allows the game to save progress in your browser. Technology!');
 }
@@ -2355,7 +2359,7 @@ function dosave(param) {
 	else if(param=="autolocalstorage") {
 
 		if(typeof(Storage) === "undefined") {
-			snacks('Update your browser, dammit, it\'s 2024 and you still don\'t have local storage! How?');
+			snacks('Update your browser, dammit, it\'s 2025 and you still don\'t have local storage! How?');
 		}
 
 		localStorage.thegoldfactorygamesave=savegame();
@@ -2424,8 +2428,8 @@ function loadgame(savecode) {
 		chestplate=parseFloat(savecode[37]);
 		pants=parseFloat(savecode[38]);
 		boots=parseFloat(savecode[39]);
-		theusername=savecode[40];
-		theuserdesc=savecode[41];
+		theusername=HtmlSanitizer.SanitizeHtml(savecode[40].substring(0, 32));
+		theuserdesc=HtmlSanitizer.SanitizeHtml(savecode[41].substring(0, 32));
 		cheststep=parseInt(savecode[42]);
 		searchtimes=parseInt(savecode[43]);
 		shovelbroken=parseInt(savecode[44]);
@@ -2436,7 +2440,7 @@ function loadgame(savecode) {
 		talk=parseInt(savecode[49]);
 		wob=(savecode[50] === "true");
 		buyfactory=(savecode[51] === "true");
-		skill=savecode[52];
+		skill=HtmlSanitizer.SanitizeHtml(savecode[52]);
 		skilllvl=parseInt(savecode[53]);
 		additionalattack=parseInt(savecode[54]);
 		clickcloudcount=parseInt(savecode[55]);
@@ -2446,7 +2450,7 @@ function loadgame(savecode) {
 		airplanecountdown=parseInt(savecode[59]);
 		digcountdown=parseInt(savecode[60]);
 		digstep=parseInt(savecode[61]);
-		currentsword=savecode[62];
+		currentsword=HtmlSanitizer.SanitizeHtml(savecode[62]);
 		passthief=(savecode[63] === "true");
 		passworms=(savecode[64] === "true");
 		passgate=(savecode[65] === "true");
@@ -2470,12 +2474,15 @@ function loadgame(savecode) {
 		if(savecode.length>=86) { offhand=savecode[85]; } else { offhand = "none"; }
 		if(savecode.length>=87) { shieldlevel=parseInt(savecode[86]); } else { shieldlevel = 0; }
 		if(savecode.length>=88) { spentonenchant=parseInt(savecode[87]); } else { spentonenchant = 0; }
+		if(savecode.length>=89) { glorylayout[0]=parseInt(savecode[88]); } else { glorylayout[0] = 0; }
+		if(savecode.length>=90) { glorylayout[1]=parseInt(savecode[89]); } else { glorylayout[1] = 0; }
+		if(savecode.length>=91) { glorylayout[2]=parseInt(savecode[90]); } else { glorylayout[2] = 0; }
 		if(pizzaeaten && ovenlevel == 0) {
 			ovenlevel = 3;
 		}
 }
 function savegame(){
-	return btoa(goldbar+"|"+ironbar+"|"+gbps+"|"+goldmining+"|"+ibpt+"|"+ibtime+"|"+ironmining+"|"+items[0].owned+"|"+items[1].owned+"|"+items[2].owned+"|"+items[3].owned+"|"+items[4].owned+"|"+items[5].owned+"|"+items[6].owned+"|"+items[7].owned+"|"+items[8].owned+"|"+items[9].owned+"|"+items[10].owned+"|"+items[11].owned+"|"+items[12].owned+"|"+items[13].owned+"|"+items[14].owned+"|"+items[15].owned+"|"+items[16].owned+"|"+items[17].owned+"|"+items[18].owned+"|"+items[19].owned+"|"+items[20].owned+"|"+items[21].owned+"|"+items[22].owned+"|"+items[23].owned+"|"+items[24].owned+"|"+enchant_attack+"|"+enchant_defense+"|"+enchant_countdown+"|"+enchant_life+"|"+helmet+"|"+chestplate+"|"+pants+"|"+boots+"|"+theusername+"|"+theuserdesc+"|"+cheststep+"|"+searchtimes+"|"+shovelbroken+"|"+cursor+"|"+pizzaeaten+"|"+poisoned+"|"+chestunderground+"|"+talk+"|"+wob+"|"+buyfactory+"|"+skill+"|"+skilllvl+"|"+additionalattack+"|"+clickcloudcount+"|"+openchestcount+"|"+candybox+"|"+hpactive+"|"+airplanecountdown+"|"+digcountdown+"|"+digstep+"|"+currentsword+"|"+passthief+"|"+passworms+"|"+passgate+"|"+unlockenchant+"|"+unlockchest+"|"+beatboss+"|"+hasairplane+"|"+reachedclouds+"|"+defeatinvisiblebot+"|"+gethole+"|"+win+"|"+hasportal+"|"+cipherstep+"|"+activatemachine+"|"+autosave+"|"+autoattack+"|"+pizzacollected+"|"+weapontype+"|"+endlesswave+"|"+ovenlevel+"|"+items[25].owned+"|"+items[26].owned+"|"+offhand+"|"+shieldlevel+"|"+spentonenchant)+"encrypted";
+	return btoa(goldbar+"|"+ironbar+"|"+gbps+"|"+goldmining+"|"+ibpt+"|"+ibtime+"|"+ironmining+"|"+items[0].owned+"|"+items[1].owned+"|"+items[2].owned+"|"+items[3].owned+"|"+items[4].owned+"|"+items[5].owned+"|"+items[6].owned+"|"+items[7].owned+"|"+items[8].owned+"|"+items[9].owned+"|"+items[10].owned+"|"+items[11].owned+"|"+items[12].owned+"|"+items[13].owned+"|"+items[14].owned+"|"+items[15].owned+"|"+items[16].owned+"|"+items[17].owned+"|"+items[18].owned+"|"+items[19].owned+"|"+items[20].owned+"|"+items[21].owned+"|"+items[22].owned+"|"+items[23].owned+"|"+items[24].owned+"|"+enchant_attack+"|"+enchant_defense+"|"+enchant_countdown+"|"+enchant_life+"|"+helmet+"|"+chestplate+"|"+pants+"|"+boots+"|"+theusername+"|"+theuserdesc+"|"+cheststep+"|"+searchtimes+"|"+shovelbroken+"|"+cursor+"|"+pizzaeaten+"|"+poisoned+"|"+chestunderground+"|"+talk+"|"+wob+"|"+buyfactory+"|"+skill+"|"+skilllvl+"|"+additionalattack+"|"+clickcloudcount+"|"+openchestcount+"|"+candybox+"|"+hpactive+"|"+airplanecountdown+"|"+digcountdown+"|"+digstep+"|"+currentsword+"|"+passthief+"|"+passworms+"|"+passgate+"|"+unlockenchant+"|"+unlockchest+"|"+beatboss+"|"+hasairplane+"|"+reachedclouds+"|"+defeatinvisiblebot+"|"+gethole+"|"+win+"|"+hasportal+"|"+cipherstep+"|"+activatemachine+"|"+autosave+"|"+autoattack+"|"+pizzacollected+"|"+weapontype+"|"+endlesswave+"|"+ovenlevel+"|"+items[25].owned+"|"+items[26].owned+"|"+offhand+"|"+shieldlevel+"|"+spentonenchant+"|"+glorylayout[0]+"|"+glorylayout[1]+"|"+glorylayout[2])+"encrypted";
 }
 
 jQuery.fn.shake = function() {
@@ -2771,7 +2778,6 @@ function enemyattack(id,damage) {
 		//clearTiemout(asdasdf);
 	}
 	else {
-		$(".button-health-"+id).attr("onclick","drinkhealthpotion("+id+","+myhealthpoint(false,0)+")");
 		if(myhealthpoint(false,0)<=0) {
 			battlestop(true, true);
 			stop_battle_timers();
@@ -2858,7 +2864,6 @@ function enemyattack(id,damage) {
 				},200);
 			}
 		}
-		$(".button-health-"+id).attr("onclick","drinkhealthpotion("+id+","+myhealthpoint(false,0)+")");
 	}
 }
 function attackenemy(id,power,hp,param,mymaxhp) {
@@ -2878,13 +2883,11 @@ function attackenemy(id,power,hp,param,mymaxhp) {
 	}
 	else {
 		if(id>0) {
-			myhp=myhealthpoint(false,0);
 			myhp+=enchant_life*2;
 			powerhp();
 			if(myhp>mymaxhp) {
 				myhp=mymaxhp;
 			}
-			myhealthpoint(true,myhp);
 			$(".player-"+id+"-hp").html(myhp.toLocaleString("en"));
 			playerisattacking=true;
 			attackdelay(id,mindelay);
@@ -2990,15 +2993,13 @@ function drinkhealthpotion(id, mymaxhp) {
 		items[7].owned-=1;
 		checkhealthbutton(id);
 		checkthings();
-		myhp=myhealthpoint(false,0);
-		myhp+=50;
+		myhp+=30;
 		powerhp();
 		if(myhp>mymaxhp) {
 			myhp=mymaxhp;
 		}
-		myhealthpoint(true,myhp);
 		$(".player-"+id+"-hp").html(myhp.toLocaleString("en"));
-		$(".button-health-"+id).attr("onclick","drinkhealthpotion("+id+","+myhp+")");
+		$(".button-health-"+id).attr("onclick","drinkhealthpotion("+id+","+mymaxhp+")");
 		healthdelay(id,mindelay);
 	}
 }
@@ -3733,7 +3734,7 @@ function ciphercode() {
 		codetocipher="43 24 33 33 15 43 31 34 43 13 23 15 33";
 	}
 	else if(cipherstep==7) {
-		codetocipher="towiiag g se&nbsp;&nbsp;&nbsp;rir,oaoan&nbsp;&nbsp;&nbsp;ft ofo srtod tddyi ot mdy lugelelmwon foemsthiuaa ttclntclga&nbsp;&nbsp;bhhs";
+		codetocipher="tg t  lot ,d tm og t twdh odfcoywsbitln ieao n ti h otfmu odfcoyi h olelarau gmgaisesaslarner";
 	}
 	else if(cipherstep==8) {
 		codetocipher="Li4uLiAuLS0tIC4uLiAuLi0gLi0uLiAuLSAuLi0gLi0tIC8gLiAuLi4gLS4<br>tLiAuLS0gLS4tIC8gLi4uLiAuLS0gLi0tLSAtLi4tIC4tLSAuLi0gLi0uLg==";
@@ -3910,7 +3911,7 @@ function checkcipher() {
 }
 
 function gethint() {
-	let hints = ["Hint: ABC, Its easy as 123!", "Hint: The Romans would be furious with you!", "Hint: Save Our Souls!", "Hint: You use this to type!", "Hint: Who even needs vision, anyway?", "Hint: (8*4) - 16 + ((24/2) * 4)", "Hint: Square coordinates!", "Hint: You know the rails and the fence? Combine them and keep going! There may be multiple stops.", "Hint: Use everything you've learned! You've got this!"];
+	let hints = ["Hint: ABC, Its easy as 123!", "Hint: The Romans would be furious with you!", "Hint: Save Our Souls!", "Hint: You use this to type!", "Hint: Who even needs vision, anyway?", "Hint: (8*4) - 16 + ((24/2) * 4)", "Hint: Square coordinates!", "Hint: You know the rails and the fence? Combine them and keep going!", "Hint: Use everything you've learned! You've got this!"];
 	snacks(hints[cipherstep]);
 }
 
