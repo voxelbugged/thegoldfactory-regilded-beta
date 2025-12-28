@@ -19,6 +19,7 @@ var potiontimeout;
 var invulnerabilitydelay;
 var irondivisor = 600;
 var golddivisor = 200;
+var ovendivisor = 0.2;
 var secondrealm = false;
 var instasused = 0;
 var battleid = 1;
@@ -32,6 +33,8 @@ var przydomki = ["Brave", "Strong", "Kinda Dumb", "Almighty", "Great", "Alive", 
 var leagues = ["Wooden Rat", "Stone Thief", "Iron Golem", "Golden Ghost", "Diamond Devil", "Emerald Professor", "Glorious Champion"];
 var spentonenchant = 0;
 var winningid = 0;
+var enemyspeed = 1;
+var glorylayout = [0, 0, 0];
 function randomnumber(min,max) {
 	return Math.floor(Math.random()*(max-min)+min);
 }
@@ -93,10 +96,10 @@ function updateitems() {
 	$(".iron-mining-amount").html(ironmining.toLocaleString("en"));
 	$(".ibpt").html(ibpt.toLocaleString("en"));
     $(".skilllvl").html(skilllvl.toLocaleString("en"));
-    $(".thunder-damage").html((20+skilllvl*10).toLocaleString("en"));
+    $(".thunder-damage").html((20*(skilllvl+1)).toLocaleString("en"));
     $(".invuln-time").html((3+skilllvl).toLocaleString("en"));
-    $(".upgrade-price").html((skilllvl*skilllvl*500+500).toLocaleString("en"));
-	$(".change-price").html((skilllvl*skilllvl*250+250).toLocaleString("en"));
+    $(".upgrade-price").html((getskillprice()).toLocaleString("en"));
+	$(".change-price").html((getskillprice()/2).toLocaleString("en"));
 	$(".irontime").html(second2name(ibtime));
 	$(".gold-mining").html(goldmining.toLocaleString("en"));
 	$(".gbps").html(gbps.toLocaleString("en"));
@@ -108,6 +111,12 @@ function updateitems() {
 	$(".1-gold-cost").html(goldprice.toLocaleString("en"));
 	$(".10-gold-cost").html(calculateTotalPrice(goldmining, 10, golddivisor).toLocaleString("en"));
 	$(".100-gold-cost").html(calculateTotalPrice(goldmining, 100, golddivisor).toLocaleString("en"));
+	ovenprice=1000+Math.floor(ovenlevel*ovenlevel/ovendivisor);
+	$(".1-oven-cost").html(ovenprice.toLocaleString("en"));
+	$(".10-oven-cost").html(calculateTotalPrice(ovenlevel, 10, ovendivisor, 1000).toLocaleString("en"));
+	$(".100-oven-cost").html(calculateTotalPrice(ovenlevel, 100, ovendivisor, 1000).toLocaleString("en"));
+	$(".oven-level").html(ovenlevel.toLocaleString("en"));
+	$(".pp5s").html(Math.floor(ovenlevel/3).toLocaleString("en"));
 
 	if(enchant_attack==0 && enchant_defense==0 && enchant_countdown==0 && enchant_life==0) {
 		$(".enchants").html("Your sword is not enchanted. You should probably do something about that.<br>");
@@ -230,7 +239,7 @@ function updateitems() {
 	$(".current-cookie").html((items[19].owned).toLocaleString("en"));
 	$(".cps").html(cursor/10);
 	$(".cursor-button").val("Cursor ["+cursor+"]");
-	$(".cursor-price").html(15*Math.pow(1.15,cursor));
+	$(".cursor-price").html(Math.round(15*Math.pow(1.15,cursor)));
 
 	$(".airplanecd").html(airplanecountdown.toLocaleString("en"));
 
@@ -364,11 +373,11 @@ function updatestatus() {
 	if(offhand != "none"){
 		if(offhand == "Shield"){
 			offhandtext=shieldnames[shieldlevel-1];
-			offhanddescription="Shields you from "+shieldlevel*5+"% of the damage you receive."
+			offhanddescription="Shields you from "+shieldlevel*5+"% of the damage you receive.";
 		}
 		else if(offhand == "Watch"){
 			offhandtext="Professor's Watch";
-			offhanddescription="Makes all of your countdowns 10% faster!"
+			offhanddescription="Makes all of your countdowns 10% faster!";
 		}
 		else if(offhand == "Dagger"){
 			offhandtext="Thief's Dagger";
@@ -388,7 +397,11 @@ function updatestatus() {
 		}
 		else if(offhand == "Suitcase"){
 			offhandtext="Strange Suitcase";
-			offhanddescription="Causes a random potion effect each time you use your skill. Anything could happen!"
+			offhanddescription="Causes a random potion effect each time you use your skill. Anything could happen!";
+		}
+		else if(offhand == "Sash"){
+			offhandtext="Sand Sash";
+			offhanddescription="Grants you a 25% chance to dodge enemy attacks!";
 		}
 	}
 	$(".currentoffhand").html(offhandtext);
@@ -396,9 +409,9 @@ function updatestatus() {
 	$(".username").html(theusername);
 	$(".userdesc").html('"'+theuserdesc+'"');
 	powerhp();
-	$(".damagedisplay").html(power);
-	$(".attackspeeddisplay").html((attackspeed*3)/1000);
-	$(".lifestealdisplay").html(enchant_life*2);
+	$(".damagedisplay").html(power.toLocaleString("en"));
+	$(".attackspeeddisplay").html(((attackspeed*3)/1000).toLocaleString("en"));
+	$(".lifestealdisplay").html((enchant_life*2).toLocaleString("en"));
 	armorinfo = "";
 	skillinfo = "None!";
 	skilldesc = "";
@@ -412,14 +425,14 @@ function updatestatus() {
 	}
 	if(skill == "invuln") {
 		skillinfo="Invulnerability (Level "+skilllvl.toLocaleString("en")+")";
-		skilldesc="<br>Description: Makes you temporarily invulnerable!";
+		skilldesc="<br>Description: Makes you temporarily take 66% less damage.";
 		skilleffect="<br>Duration: "+(3+skilllvl).toLocaleString("en")+" seconds.";
 		skillcooldown="<br>Cooldown: "+(20+3+skilllvl).toLocaleString("en")+" seconds.";
 	}
 	if(skill == "thunder") {
 		skillinfo="Thunder Bolt (Level "+skilllvl.toLocaleString("en")+")";
 		skilldesc="<br>Description: Deals instant damage to the enemy. Simple!";
-		skilleffect="<br>Damage: "+(20+skilllvl*10).toLocaleString("en")+" damage.";
+		skilleffect="<br>Damage: "+(20*(skilllvl+1)).toLocaleString("en")+" damage.";
 		skillcooldown="<br>Cooldown: 20 seconds.";
 	}
 	$("#armorinfo").html(armorinfo);
@@ -456,11 +469,11 @@ function checkitem() {
 	if(goldbar < 1000) {$(".buy-stone-shield").attr("disabled", true); } else { $(".buy-stone-shield").removeAttr("disabled"); }
 	if(goldbar < 2000 || shieldlevel < 2) {$(".buy-iron-shield").attr("disabled", true); } else { $(".buy-iron-shield").removeAttr("disabled"); }
 	if(goldbar < 6000) {$(".buy-diamond-shield").attr("disabled", true); } else { $(".buy-diamond-shield").removeAttr("disabled"); }	
-	if(items[4].owned == 0 || goldbar < 1000) {$(".buy-iron-sword").attr("disabled", true); } else { $(".buy-iron-sword").removeAttr("disabled"); }
+	if(items[4].owned == 0) {$(".buy-iron-sword").attr("disabled", true); } else { $(".buy-iron-sword").removeAttr("disabled"); }
 	if(ironbar < 50000) {$(".airplane-button").attr("disabled", true); } else { $(".airplane-button").removeAttr("disabled"); }
 	if(weapontype == "Maul") {$("#offhands").attr("disabled", true); } else { $("#offhands").removeAttr("disabled"); }
-	if(goldbar < skilllvl*skilllvl*500+500) {$(".skill-upgrade-button").attr("disabled", true); } else { $(".skill-upgrade-button").removeAttr("disabled"); }
-	if(goldbar < skilllvl*skilllvl*250+250) {$(".skill-change-button").attr("disabled", true); } else { $(".skill-change-button").removeAttr("disabled"); }
+	if(goldbar < getskillprice()) {$(".skill-upgrade-button").attr("disabled", true); } else { $(".skill-upgrade-button").removeAttr("disabled"); }
+	if(goldbar < getskillprice()/2) {$(".skill-change-button").attr("disabled", true); } else { $(".skill-change-button").removeAttr("disabled"); }
 	if(goldbar < 100) {$(".training-button").attr("disabled", true); } else { $(".training-button").removeAttr("disabled"); }
 	if(ironbar < 500) {$(".spear-button").attr("disabled", true); } else { $(".spear-button").removeAttr("disabled"); }
 	if(ironbar < 500) {$(".sword-button").attr("disabled", true); } else { $(".sword-button").removeAttr("disabled"); }
@@ -474,6 +487,11 @@ function checkitem() {
 	if(goldbar < chestplate*2000+1000) {$(".button-buy-chestplate").attr("disabled", true); } else { $(".button-buy-chestplate").removeAttr("disabled");}
 	if(goldbar < pants*2000+1000) {$(".button-buy-pants").attr("disabled", true); } else { $(".button-buy-pants").removeAttr("disabled");}
 	if(goldbar < boots*2000+1000) {$(".button-buy-boots").attr("disabled", true); } else { $(".button-buy-boots").removeAttr("disabled");}
+	if(Math.min(ironbar, goldbar) < ovenprice) { $(".buy-1-oven").attr("disabled",true); } else { $(".buy-1-oven").removeAttr("disabled"); }
+	if(Math.min(ironbar, goldbar) < calculateTotalPrice(ovenlevel, 10, ovendivisor, 1000)) { $(".buy-10-oven").attr("disabled",true); } else { $(".buy-10-oven").removeAttr("disabled"); }
+	if(Math.min(ironbar, goldbar) < calculateTotalPrice(ovenlevel, 100, ovendivisor, 1000)) { $(".buy-100-oven").attr("disabled",true); } else { $(".buy-100-oven").removeAttr("disabled"); }
+	if(items[19].owned < Math.round(15*Math.pow(1.15,cursor))) { $(".cursor-button").attr("disabled", true); } else { $(".cursor-button").removeAttr("disabled"); }
+	if(items[19].owned < 100) { $(".grandma-button").attr("disabled", true); } else { $(".grandma-button").removeAttr("disabled"); }
 }
 function buy(item,number) {
 	for(i=0;i<items.length;i++) {
@@ -539,6 +557,15 @@ function buyminingmachinegold(amount) {
 	if(ironbar>=theprice) {
 		ironbar-=theprice;
 		goldmining+=amount;
+		checkthings();
+	}
+}
+function buyoven(amount) {
+	theprice=calculateTotalPrice(ovenlevel, amount, ovendivisor, 1000);
+	if(Math.min(ironbar, goldbar)>=theprice) {
+		goldbar-=theprice;
+		ironbar-=theprice;
+		ovenlevel+=amount;
 		checkthings();
 	}
 }
@@ -615,7 +642,7 @@ function reforge(newtype) {
 }
 $(document).ready(function() {
 
-	$('.leversion').html("1.v3.0");
+	$('.leversion').html("1.v3.1 BETA");
 
 	goldbar=0; //0
 	ironbar=0; //0
@@ -745,16 +772,7 @@ $(document).ready(function() {
 	}
 
 	$("#gold-factory").click(function() {
-		if(!buyfactory) {
-			closemessage();
-			makealert("buy-factory","The Gold Factory","Status: You work here, and you get 1 gold bar per second as your salary.<br><br><input type=\"button\" value=\"Make the boss happier\" onclick=\"makebosshappy()\" class=\"mediumbutton\">and receive a bonus!<br><input type=\"button\" value=\"Buy this factory\" onclick=\"buythefactory()\" class=\"buy-factory-button mediumbutton\">for 2,500 gold bars and get more bars per second!",true);
-			checkitem();
-		}
-		else {
-			closemessage();
-			makealert("buy-factory-new","The Gold Factory","Status: You are the boss! :o<br><br>You currently have <span class=\"gold-mining\">"+goldmining+"</span> mining machines.<br>Production: <span class=\"gbps\">"+gbps+"</span> gold bars / second<br><br><input type=\"button\" value=\"Buy 1 mining machine\" onclick=\"buyminingmachinegold(1)\" class=\"buy-1-mining-gold bigbutton\"> (<span class=\"1-gold-cost\">"+goldprice+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 10 mining machines\" onclick=\"buyminingmachinegold(10)\" class=\"buy-10-mining-gold bigbutton\"> (<span class=\"10-gold-cost\">"+calculateTotalPrice(goldmining, 10, golddivisor)+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 100 mining machines\" onclick=\"buyminingmachinegold(100)\" class=\"buy-100-mining-gold bigbutton\"> (<span class=\"100-gold-cost\">"+calculateTotalPrice(goldmining, 100, golddivisor)+"</span> Iron Bars)<br><br>Don't worry, the total's the same no matter how many you buy at once!<br>You can also <input type='button' value='kill rats' onclick='killrats()'>or <input type='button' value='decipher codes' onclick='ciphercode()'>.",true);
-			checkitem();
-		}
+		enterfactory();
 	});
 	$(".theshop").click(function() {
 		closemessage();
@@ -783,19 +801,20 @@ $(document).ready(function() {
 	$(".training-center").click(function() {
 		if(passworms) {
 			closemessage();
-			if(skill!="none") {
-				makealert("training-center","Training Center","Welcome to the training center!<br>Here, you can test your abilities or learn a new one.<br>Your temporary damage boost from training is currently "+additionalattack+".<br><br><input type=\"button\" value=\"Test your skill\" onclick=\"testskill()\" class=\"training-button mediumbutton\"> (100 Gold Bars)<br><input type=\"button\" value=\"Upgrade your skill\" onclick=\"upgradeskill()\" class=\"upgrade-skill mediumbutton\">",true)
+			if(skill!="none"){
+				skillbuttonelement = "<input type=\"button\" value=\"Upgrade your skill\" onclick=\"upgradeskill()\" class=\"upgrade-skill mediumbutton\">";
 			}
-			else {
-				makealert("training-center","Training Center","Welcome to the training center!<br>Here, you can test your abilities or learn a new one.<br>Your temporary damage boost from training is currently "+additionalattack+".<br><br><input type=\"button\" value=\"Test your skill\" onclick=\"testskill()\" class=\"training-button mediumbutton\"> (100 Gold Bars)<br><input type=\"button\" value=\"Learn a new skill\" onclick=\"learnnewskill()\" class=\"new-skill mediumbutton\">",true)
+			else{
+				skillbuttonelement = "<input type=\"button\" value=\"Learn a new skill\" onclick=\"learnnewskill()\" class=\"new-skill mediumbutton\">";
 			}
+				makealert("training-center","Training Center","Welcome to the training center!<br>Here, you can test your abilities, or learn a new one.<br><br>Your temporary damage boost from training is currently "+additionalattack+".<br>This value is halved every time you win a battle.<br><br><input type=\"button\" value=\"Test your skill\" onclick=\"testskill()\" class=\"training-button mediumbutton\"> (100 Gold Bars)<br>"+skillbuttonelement+"<br><br>Tip: The stronger you are, the more extra damage you will get from training!",true)
 		}
 	});
 	$(".mining").click(function() {
 		if(passworms) {
 			closemessage();
 			irontime=second2name(ibtime);
-			makealert("mining","Iron Mine","This iron mine allows you to get iron bars automatically!<br><br>You currently have <span class=\"iron-mining-amount\">"+ironmining+"</span> mining machines.<br>Production: <span class=\"ibpt\">"+ibpt+"</span> iron bar(s) / <span class=\"irontime\">"+irontime+"</span><br><br><input type=\"button\" value=\"Buy 1 mining machine\" onclick=\"buyminingmachine(1)\" class=\"buy-1-mining bigbutton\"> (<span class=\"1-iron-cost\">"+ironprice+"</span> Gold Bars)<br><input type=\"button\" value=\"Buy 10 mining machines\" onclick=\"buyminingmachine(10)\" class=\"buy-10-mining bigbutton\"> (<span class=\"10-iron-cost\">"+calculateTotalPrice(ironmining, 10, irondivisor)+"</span> Gold Bars)<br><input type=\"button\" value=\"Buy 100 mining machines\" onclick=\"buyminingmachine(100)\" class=\"buy-100-mining bigbutton\"> (<span class=\"100-iron-cost\">"+calculateTotalPrice(ironmining, 100, irondivisor)+"</span> Gold Bars)<br><br>Don't worry, the total's the same no matter how many you buy at once!<br>You can also <input type='button' value='kill iron golems' onclick='killgolems()'>for extra iron bars.",true);
+			makealert("mining","Iron Mine","This iron mine allows you to get iron bars automatically!<br><br>You currently have <span class=\"iron-mining-amount\">"+ironmining+"</span> mining machines.<br>Production: <span class=\"ibpt\">"+ibpt+"</span> iron bar(s) / <span class=\"irontime\">"+irontime+"</span><br><br><input type=\"button\" value=\"Buy 1 mining machine\" onclick=\"buyminingmachine(1)\" class=\"buy-1-mining bigbutton\"> (<span class=\"1-iron-cost\">"+ironprice+"</span> Gold Bars)<br><input type=\"button\" value=\"Buy 10 mining machines\" onclick=\"buyminingmachine(10)\" class=\"buy-10-mining bigbutton\"> (<span class=\"10-iron-cost\">"+calculateTotalPrice(ironmining, 10, irondivisor)+"</span> Gold Bars)<br><input type=\"button\" value=\"Buy 100 mining machines\" onclick=\"buyminingmachine(100)\" class=\"buy-100-mining bigbutton\"> (<span class=\"100-iron-cost\">"+calculateTotalPrice(ironmining, 100, irondivisor)+"</span> Gold Bars)<br><br>Don't worry, the total's the same no matter how many you buy at once!<br>You can also <input type='button' value='fight iron golems' onclick='killgolems()'>for extra iron bars.",true);
 			checkitem();
 		}
 	});
@@ -962,7 +981,7 @@ man="\n\
 		}
 	});
 	$(".nametag").click(function() {
-		makealert("name-tag","Name Tag","You found a name tag!<br>You can now change your name and description in battles!<br><br>Name: <input type='text' id='yourname' maxlength='32' value='"+theusername+"'><br>Description: <input type='text' id='yourdesc' maxlength='32' value='"+theuserdesc+"'>",true);
+		makealert("name-tag","Name Tag","You found a name tag!<br>You can now change your name and description in battles!<br><br>Name: <input type='text' id='yourname' value='"+theusername+"'><br>Description: <input type='text' id='yourdesc' value='"+theuserdesc+"'><br><br>WARNING: Inserting an extremely long name/description or adding some wild characters may corrupt your save file!",true);
 		namedesc=setInterval(function() {
 			theusername=HtmlSanitizer.SanitizeHtml($("#yourname").val().substring(0, 32));
 			theuserdesc=HtmlSanitizer.SanitizeHtml($("#yourdesc").val().substring(0, 32));
@@ -1003,11 +1022,11 @@ chestascii='\n\
 			}
 		}
 		else if(pizzaeaten) {
-			makealert("pizza-alert","Pizza!","Your pizza ovens are diligently baking one pizza for you every 5 seconds.",true);
+			makealert("pizza-alert","Pizza!","Your ovens are diligently baking lots and lots of pizza!<br><br>You currently have <span class=\"oven-level\">"+ovenlevel.toLocaleString("en")+"</span> pizza ovens.<br>Production: <span class=\"pp5s\">"+Math.floor(ovenlevel/3).toLocaleString("en")+"</span> pizzas / 5 seconds<br><br><input type=\"button\" value=\"Buy 1 pizza oven\" onclick=\"buyoven(1)\" class=\"buy-1-oven bigbutton\"> (<span class=\"1-oven-cost\">"+ovenprice.toLocaleString("en")+"</span> Gold & Iron Bars)<br><input type=\"button\" value=\"Buy 10 pizza ovens\" onclick=\"buyoven(10)\" class=\"buy-10-oven bigbutton\"> (<span class=\"10-oven-cost\">"+calculateTotalPrice(ovenlevel, 10, ovendivisor, 1000).toLocaleString("en")+"</span> Gold & Iron Bars)<br><input type=\"button\" value=\"Buy 100 pizza ovens\" onclick=\"buyoven(100)\" class=\"buy-100-oven bigbutton\"> (<span class=\"100-oven-cost\">"+calculateTotalPrice(ovenlevel, 100, ovendivisor, 1000).toLocaleString("en")+"</span> Gold & Iron Bars)<br><br>You know the deal - the total's always the same.",true);
 		}
 	});
 	$(".laptop").click(function() {
-		makealert("cookieclicker","Cookie Clicker Lite™","Play the full game here: <a href='http://orteil.dashnet.org/cookieclicker/' target='_blank'>http://orteil.dashnet.org/cookieclicker/</a><br><br><span style='font-size:20px;'><span class='current-cookie'>"+items[19].owned+"</span> cookie(s)</span><br><span class='cps'>"+cursor/10+" </span> per second<br><br><input type=\"button\" value=\"Bake a cookie\" class='smallbutton' onclick=\"cookieclicker('bake')\"><br><br><span style='font-size:20px;'>Shop:</span><br><br><input type=\"button\" value=\"Cursor ["+cursor+"]\" onclick=\"snacks('This is not the full version of Cookie Clicker, so you cannot buy cursors!')\" class='cursor-button smallbutton'> (<span class='cursor-price'>"+Math.round(15*Math.pow(1.15,cursor))+"</span> cookies)<br><!--input type=\"button\" value=\"Grandma [0]\" class='smallbutton' onclick=\"snacks('This is not the full version of Cookie Clicker!')\"> (100 cookies)00-->",true);
+		makealert("cookieclicker","Cookie Clicker Lite™","Play the full game here: <a href='https://orteil.dashnet.org/cookieclicker/' target='_blank'>https://orteil.dashnet.org/cookieclicker/</a><br><br><span style='font-size:20px;'><span class='current-cookie'>"+items[19].owned.toLocaleString("en")+"</span> cookie(s)</span><br><span class='cps'>"+cursor/10+" </span> per second<br><br><input type=\"button\" value=\"Bake a cookie!\" class='smallbutton' onclick=\"cookieclicker('bake')\"><br><br><span style='font-size:20px;'>Shop:</span><br><br><input type=\"button\" value=\"Cursor ["+cursor.toLocaleString("en")+"]\" onclick=\"cookieclicker('cursor')\" class='cursor-button smallbutton'> (<span class='cursor-price'>"+Math.round(15*Math.pow(1.15,cursor)).toLocaleString("en")+"</span> cookies)<br><input type=\"button\" value=\"Grandma [0]\" class='grandma-button smallbutton' onclick=\"snacks('This is not the full version of Cookie Clicker, so you cannot buy grandmas!')\"> (100 cookies)",true);
 
 		/*
 
@@ -1100,11 +1119,18 @@ story="\n\
 		}
 	});
 	$(".endlessgate").click(function() {
-		makealert("endlessgate-intro", "The Gate of Endless Glory", "Welcome to the Gate of Endless Glory!<br>Fight through waves of other tough warriors to ascend the ranks!<br>Have you got what it takes to become the Glorious Champion?<br><br>You have made it through "+endlesswave.toLocaleString("en")+" waves.<br> This gives you "+endlesswave.toLocaleString("en")+"% more gold from The Gold Factory.<br><br>You are currently in the " +getleague()+ " league.<br>This gives you "+Math.floor(endlesswave/5).toLocaleString("en")+"% more iron from the iron mine.<br><br><input type='button' value='Fight!' onclick='endlessgate()' class='mediumbutton'>", true);
+		if(endlesswave < 30){
+			championblurb = "The Glorious Champion awaits at the 30th. Defeat him, and his title is yours!";
+		}
+		else{
+			championblurb = "You are the Champion! :o";
+		}
+		makealert("endlessgate-intro", "The Gate of Endless Glory", "Welcome to the Gate of Endless Glory!<br>Fight through waves of other tough warriors to ascend the ranks!<br>"+championblurb+"<br><br>You have made it through "+endlesswave.toLocaleString("en")+" waves.<br>You are in the " +getleague()+ " league.<br>This gives you "+Math.floor(endlesswave/5).toLocaleString("en")+" Glory Points to distribute.<br><br><input type='button' value='Fight!' onclick='endlessgate()' class='mediumbutton'><br><input type='button' value='Assign Points' onclick='glorypoints()' class='mediumbutton'>", true);
 	});
 	let ironTimer = 0;
 	let goldTimer = 0;
 	let pizzaTimer = 0;
+	let cookieTimer = 0;
 
 	let lastTime = Date.now();
 
@@ -1116,23 +1142,30 @@ story="\n\
 		ironTimer += delta;
 		goldTimer += delta;
 		pizzaTimer += delta;
+		cookieTimer += delta;
 
 		if (ironTimer >= ibtime) {
 			let ironCycles = Math.floor(ironTimer / ibtime);
-			ironbar += Math.floor((ironCycles * ibpt) * (1 + Math.floor(endlesswave/5)/100));
+			ironbar += Math.floor((ironCycles * ibpt) * (1 + glorylayout[1]*0.05));
 			ironTimer -= ironCycles * ibtime;
 		}
 
 		if (goldTimer >= 1) {
 			let goldCycles = Math.floor(goldTimer);
-			goldbar += Math.floor((goldCycles * gbps) * (1 + endlesswave/100));
+			goldbar += Math.floor((goldCycles * gbps) * (1 + glorylayout[0]*0.05));
 			goldTimer -= goldCycles;
+		}
+
+		if (cookieTimer >= 1) {
+			let cookieCycles = Math.floor(cookieTimer);
+			items[19].owned += cookieCycles * cursor/10;
+			cookieTimer -= cookieCycles;
 		}
 
 		if (pizzaTimer >= 5) {
 			let pizzaCycles = Math.floor(pizzaTimer / 5);
 			if(pizzaeaten) {
-				items[3].owned += pizzaCycles;
+				items[3].owned += Math.floor(pizzaCycles * Math.floor(ovenlevel/3) * (1 + glorylayout[2]*0.05));
 			}
 			pizzaTimer -= pizzaCycles * 5;
 		}
@@ -1148,6 +1181,18 @@ story="\n\
     });
 	gameLoop();
 });
+function enterfactory() {
+	if(!buyfactory) {
+		closemessage();
+		makealert("buy-factory","The Gold Factory","You work here, and you get 1 gold bar per second as your salary.<br><br><input type=\"button\" value=\"Make the boss happier\" onclick=\"makebosshappy()\" class=\"mediumbutton\">and receive a bonus!<br><input type=\"button\" value=\"Buy this factory\" onclick=\"buythefactory()\" class=\"buy-factory-button mediumbutton\">for 2,500 gold bars and get more bars per second!",true);
+		checkitem();
+	}
+	else {
+		closemessage();
+		makealert("buy-factory-new","The Gold Factory","You are the boss! :o<br><br>You currently have <span class=\"gold-mining\">"+goldmining+"</span> mining machines.<br>Production: <span class=\"gbps\">"+gbps+"</span> gold bars / second<br><br><input type=\"button\" value=\"Buy 1 mining machine\" onclick=\"buyminingmachinegold(1)\" class=\"buy-1-mining-gold bigbutton\"> (<span class=\"1-gold-cost\">"+goldprice+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 10 mining machines\" onclick=\"buyminingmachinegold(10)\" class=\"buy-10-mining-gold bigbutton\"> (<span class=\"10-gold-cost\">"+calculateTotalPrice(goldmining, 10, golddivisor)+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 100 mining machines\" onclick=\"buyminingmachinegold(100)\" class=\"buy-100-mining-gold bigbutton\"> (<span class=\"100-gold-cost\">"+calculateTotalPrice(goldmining, 100, golddivisor)+"</span> Iron Bars)<br><br>Don't worry, the total's the same no matter how many you buy at once!<br>You can also <input type='button' value='kill rats' onclick='killrats()'>or <input type='button' value='decipher codes' onclick='ciphercode()'>.",true);
+		checkitem();
+	}
+}
 function checkthings() {
 	powerhp();
 	updategold();
@@ -1164,7 +1209,11 @@ function checkthings() {
 }
 function makealert(id,title,text,show) {
 	$(".alert-"+id).remove();
-	html="<div class=\"alert alert-"+id+"\"><b>"+title+"</b><br>"+text+"<div class=\"close-message-button-"+id+"\"><br><input type=\"button\" value=\"Close this window\" onclick=\"closemessage()\" class='button-close-window-"+id+" mediumbutton'></div></div>";
+	additional = "";
+	if(id == "laboratory"){
+		additional = "emptyCauldron();";
+	}
+	html="<div class=\"alert alert-"+id+"\"><b>"+title+"</b><br>"+text+"<div class=\"close-message-button-"+id+"\"><br><input type=\"button\" value=\"Close this window\" onclick=\""+additional+"closemessage()\" class='button-close-window-"+id+" mediumbutton'></div></div>";
 	$("#otheralerts").append(html);
 	if(show) {
 		closemessage();
@@ -1283,7 +1332,7 @@ function testskill() {
 		hpdivide10=Math.ceil(hp/10);
 		closemessage();
 		battle=makebattle(battleid,"Training Robot",hp+hpdivide10,hp+hpdivide10,"Short ranged laser!",basepower+Math.ceil(basepower/10),"A training robot",2,power,hp,hp,currentsword,false,"training");
-		html="<div class=\"alert alert-training\"><b>Test your skill!</b><br>Let's see how strong you are!<br>Winning will give you a temporary damage boost.<br><br>"+battle.html+"</div>";
+		html="<div class=\"alert alert-training\"><b>Test your skill!</b><br>Let's see how strong you are!<br>Winning will add "+(1 + Math.floor(hp/200))+" to your training damage boost.<br><br>"+battle.html+"</div>";
 		$("#otheralerts").append(html);
 		battle.init();
 		$(".alert-training:last").fadeIn("fast");
@@ -1359,7 +1408,7 @@ function makekey() {
 }
 function learnnewskill() {
 	closemessage();
-	makealert("choose-skill","Choose a skill","Pick the skill that you want to learn.<br>Choose wisely, because changing it is expensive!<br><br><input type=\"button\" class='mediumbutton' value=\"Thunder Bolt\" onclick=\"chooseskill(1)\">Deals lots of instant damage to the enemy!<br><input type=\"button\" value=\"Invulnerability\" class='mediumbutton' onclick=\"chooseskill(2)\">Makes you temporarily invulnerable!",true)
+	makealert("choose-skill","Choose a skill","Pick the skill that you want to learn.<br>Choose wisely, because changing it is expensive!<br><br><input type=\"button\" class='mediumbutton' value=\"Thunder Bolt\" onclick=\"chooseskill(1)\">Deals lots of instant damage to the enemy!<br><input type=\"button\" value=\"Invulnerability\" class='mediumbutton' onclick=\"chooseskill(2)\">Makes you temporarily take 66% less damage!",true)
 }
 function chooseskill(type) {
 	closemessage();
@@ -1374,14 +1423,17 @@ function chooseskill(type) {
 }
 function upgradeskill() {
 	if(skill=="thunder") {
-		makealert("upgrade-skill","Upgrade Skill","Your skill is Thunder Bolt.<br>Skill level: <span class=\"skilllvl\">"+skilllvl+"</span> (<span class=\"thunder-damage\">"+(20+skilllvl*10)+"</span> damage)<br><br><input type=\"button\" class='mediumbutton skill-upgrade-button' value=\"Upgrade this skill\" onclick=\"doupgrade()\"> (<span class=\"upgrade-price\">"+(skilllvl*skilllvl*500+500)+"</span> gold bars)<br><input type=\"button\" class='change-skill-button mediumbutton' value=\"Change your skill\" onclick=\"changeskill()\"> (<span class=\"change-price\">"+(skilllvl*skilllvl*250+250)+"</span> gold bars)",true);
+		makealert("upgrade-skill","Upgrade Skill","Your skill is Thunder Bolt.<br>Skill level: <span class=\"skilllvl\">"+skilllvl.toLocaleString("en")+"</span> (<span class=\"thunder-damage\">"+(20*(skilllvl+1)).toLocaleString("en")+"</span> damage)<br><br><input type=\"button\" class='mediumbutton skill-upgrade-button' value=\"Upgrade this skill\" onclick=\"doupgrade()\"> (<span class=\"upgrade-price\">"+getskillprice()+"</span> gold bars)<br><input type=\"button\" class='change-skill-button mediumbutton' value=\"Change your skill\" onclick=\"changeskill()\"> (<span class=\"change-price\">"+getskillprice()/2+"</span> gold bars)",true);
 	}
 	else {
-		makealert("upgrade-skill","Upgrade Skill","Your skill is Invulnerability.<br>Skill level: <span class=\"skilllvl\">"+skilllvl+"</span> (<span class=\"invuln-time\">"+(3+skilllvl)+"</span> second(s))<br><br><input type=\"button\" class='mediumbutton skill-upgrade-button' value=\"Upgrade this skill\" onclick=\"doupgrade()\"> (<span class=\"upgrade-price\">"+(skilllvl*skilllvl*500+500)+"</span> gold bars)<br><input type=\"button\" class='change-skill-button mediumbutton' value=\"Change your skill\" onclick=\"changeskill()\"> (<span class=\"change-price\">"+(skilllvl*skilllvl*250+250)+"</span> gold bars)",true);
+		makealert("upgrade-skill","Upgrade Skill","Your skill is Invulnerability.<br>Skill level: <span class=\"skilllvl\">"+skilllvl.toLocaleString("en")+"</span> (<span class=\"invuln-time\">"+(3+skilllvl).toLocaleString("en")+"</span> second(s))<br><br><input type=\"button\" class='mediumbutton skill-upgrade-button' value=\"Upgrade this skill\" onclick=\"doupgrade()\"> (<span class=\"upgrade-price\">"+getskillprice()+"</span> gold bars)<br><input type=\"button\" class='change-skill-button mediumbutton' value=\"Change your skill\" onclick=\"changeskill()\"> (<span class=\"change-price\">"+getskillprice()/2+"</span> gold bars)",true);
 	}
 }
+function getskillprice() {
+	return skilllvl*skilllvl*skilllvl*500+500;
+}
 function doupgrade() {
-	cost=(skilllvl*skilllvl*500+500);
+	cost=getskillprice();
 	if (goldbar>=cost) {
 		goldbar-=cost;
 		skilllvl++;
@@ -1390,7 +1442,7 @@ function doupgrade() {
 }
 function changeskill()
 {
-	cost=(skilllvl*skilllvl*250+250);
+	cost=getskillprice()/2;
 	if (goldbar>=cost) {
 		goldbar-=cost;
 		if(skill=="thunder") {
@@ -1447,7 +1499,7 @@ function entercastle() {
 }
 function castlegotohall(myfinalhp) {
 	powerhp();
-	battle=makebattle(battleid,"Castle Staff",300,300,"Sword-like-knife",20,"The staff makes the castle look good.",0,power,myfinalhp,hp,currentsword,false,"vs-castle-staff");
+	battle=makebattle(battleid,"Castle Staff",300,300,"Sword-like-knife",20,"The staff makes the castle look good.",0,power,myfinalhp,hp,currentsword,false,"vs-castle-staff", 0.8);
 	html="<div class=\"alert alert-castle-hall\"><b>Castle</b><br>You are inside the castle...<br><br><div class=\"castle-steps\"><span class=\"castle-entrance\">Castle Entrance</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class=\"castle-hall\">Castle Hall</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class=\"castle-room\">King's Room</span></div><br><br>"+battle.html+"</div>";
 	$("#otheralerts").append(html);
 	$(".castle-entrance").addClass("grey");
@@ -1525,16 +1577,16 @@ function enterportal(step,thehp2) {
 				battle=makebattle(battleid,"Ghost",350,350,"Invisible hands",25,"A Ghost, nothing else.",4,power,hp,maxhp,currentsword,false,"in-the-nether-"+step);
 			}
 			else if(therand==3) {
-				battle=makebattle(battleid,"Giant",650,650,"Big hand",15,"Bam, bam, bam.",5,power,hp,maxhp,currentsword,false,"in-the-nether-"+step);
+				battle=makebattle(battleid,"Giant",650,650,"Big hand",50,"Bam, bam, bam.",5,power,hp,maxhp,currentsword,false,"in-the-nether-"+step, 1.2);
 			}
 			else if(therand==4) {
-				battle=makebattle(battleid,"Unicorn",400,400,"Horn",30,"Unicorn!! Yay!!! :D",6,power,hp,maxhp,currentsword,false,"in-the-nether-"+step);
+				battle=makebattle(battleid,"Unicorn",400,400,"Horn",30,"Unicorn! Yay! :D",6,power,hp,maxhp,currentsword,false,"in-the-nether-"+step, 0.8);
 			}
 			else if(therand==5) {
-				battle=makebattle(battleid,"Wizard",150,150,"Spells",65,"Abrakadabra!",7,power,hp,maxhp,currentsword,false,"in-the-nether-"+step);
+				battle=makebattle(battleid,"Wizard",150,150,"Spells",65,"Abracadabra!",7,power,hp,maxhp,currentsword,false,"in-the-nether-"+step);
 			}
 			else if(therand==6) {
-				battle=makebattle(battleid,"Pegasus",300,300,"Wings",40,"The Pegasus is facing the wrong direction :/",8,power,hp,maxhp,currentsword,false,"in-the-nether-"+step);
+				battle=makebattle(battleid,"Pegasus",300,300,"Wings",40,"The Pegasus is facing the wrong direction :/",8,power,hp,maxhp,currentsword,false,"in-the-nether-"+step, 0.8);
 			}
 			else {
 				battle=makebattle(battleid,"Weakened Ghost",250,250,"Invisible hands",15,"A weakened ghost.",4,power,hp,maxhp,currentsword,false,"in-the-nether-"+step);
@@ -1610,6 +1662,12 @@ function showequipment() {
 		suitcaseOption.value = "Suitcase";
 		suitcaseOption.textContent = "Strange Suitcase";
 		offhandSelect.appendChild(suitcaseOption);
+	}
+	if (searchtimes >= 17) {
+		const sashOption = document.createElement("option");
+		sashOption.value = "Sash";
+		sashOption.textContent = "Sand Sash";
+		offhandSelect.appendChild(sashOption);
 	}
 	if (win) {
 		const watchOption = document.createElement("option");
@@ -1942,16 +2000,7 @@ computer="                                            _________________\n\
 		$(".ylvis-the-fox").hide();
 	}
 	else if(type=="goldfactory") {
-		if(!buyfactory) {
-			closemessage();
-			makealert("buy-factory","The Gold Factory","Status: You work here, and you get 1 gold bar per second as your salary.<br><br><input type=\"button\" value=\"Make the boss happier\" onclick=\"makebosshappy()\" class=\"mediumbutton\">and receive a bonus!<br><input type=\"button\" value=\"Buy this factory\" onclick=\"buythefactory()\" class=\"buy-factory-button mediumbutton\">for 2,500 gold bars and get more bars per second!",true);
-			checkitem();
-		}
-		else {
-			closemessage();
-			makealert("buy-factory-new","The Gold Factory","Status: You are the boss! :o<br><br>You currently have <span class=\"gold-mining\">"+goldmining+"</span> mining machines.<br>Production: <span class=\"gbps\">"+gbps+"</span> gold bars / second<br><br><input type=\"button\" value=\"Buy 1 mining machine\" onclick=\"buyminingmachinegold(1)\" class=\"buy-1-mining-gold bigbutton\"> (<span class=\"1-gold-cost\">"+goldprice+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 10 mining machines\" onclick=\"buyminingmachinegold(10)\" class=\"buy-10-mining-gold bigbutton\"> (<span class=\"10-gold-cost\">"+calculateTotalPrice(goldmining, 10, golddivisor)+"</span> Iron Bars)<br><input type=\"button\" value=\"Buy 100 mining machines\" onclick=\"buyminingmachinegold(100)\" class=\"buy-100-mining-gold bigbutton\"> (<span class=\"100-gold-cost\">"+calculateTotalPrice(goldmining, 100, golddivisor)+"</span> Iron Bars)<br><br>Don't worry, the total's the same no matter how many you buy at once!<br>You can also <input type='button' value='kill rats' onclick='killrats()'>or <input type='button' value='decipher codes' onclick='ciphercode()'>.",true);
-			checkitem();
-		}
+		enterfactory();
 		$(".ylvis-the-fox").hide();
 	}
 	else if(type=="power") {
@@ -2013,39 +2062,42 @@ computer="                                            _________________\n\
 }
 
 function searchsand() {
-	random=randomnumber(10,31);
-	if(random==10 || random == 11) {
-		r=randomnumber(100,1000);
-		goldbar+=r;
-		$(".search-result").html("You got "+r+" gold bars!");
-		searchtimes++;
+	if(searchtimes != 16){
+		random=randomnumber(10,31);
+		if(random==10 || random == 11) {
+			r=randomnumber(100,1000);
+			goldbar+=r;
+			$(".search-result").html("You got "+r+" gold bars!");
+		}
+		else if(random==15 || random == 16) {
+			r=randomnumber(100,1000);
+			ironbar+=r;
+			$(".search-result").html("You got "+r+" iron bars!");
+		}
+		else if(random==20 || random == 21) {
+			r=randomnumber(2,5);
+			items[7].owned+=r;
+			$(".search-result").html("You got "+r+" health potions!");
+		}
+		else if (random==17) {
+			closemessage();
+			powerhp();
+			battle=makebattle(battleid,"Sand Shark",750,750,"Fins & teeth",100,"How it swims, no one knows.",12,power,hp,hp,currentsword,false,"vs-shark");
+			html="<div class=\"alert alert-shark-fight\"><b>Surprise!</b><br>You have found a wild sand shark! It won't let you flee!<br><br>"+battle.html+"</div>";
+			$("#otheralerts").append(html);
+			battle.init();
+			$(".alert-shark-fight:last").fadeIn("fast");
+			$(".flee-button").attr("disabled",true);
+		}
+		else {
+			$(".search-result").html("You got nothing :(");
+		}
 	}
-	else if(random==15 || random == 16) {
-		r=randomnumber(100,1000);
-		ironbar+=r;
-		$(".search-result").html("You got "+r+" iron bars!");
-		searchtimes++;
-	}
-	else if(random==20 || random == 21) {
-		r=randomnumber(2,5);
-		items[7].owned+=r;
-		$(".search-result").html("You got "+r+" health potions!");
-		searchtimes++;
-	}
-	else if (random==17) {
+	else{
 		closemessage();
-		powerhp();
-		battle=makebattle(battleid,"Sand Shark",750,750,"Fins & teeth",100,"How it swims, no one knows.",12,power,hp,hp,currentsword,false,"vs-shark");
-		html="<div class=\"alert alert-shark-fight\"><b>Surprise!</b><br>You have found a wild sand shark! It won't let you flee!<br><br>"+battle.html+"</div>";
-		$("#otheralerts").append(html);
-		battle.init();
-		$(".alert-shark-fight:last").fadeIn("fast");
-		searchtimes++;
-		$(".flee-button").attr("disabled",true);
+		makealert("sash","What's this?","It seems that another, less fortunate adventurer has been here before you.<br>Free stuff!<br><br>You got a new offhand item - the Sand Sash!",true);
 	}
-	else {
-		$(".search-result").html("You got nothing :(");
-	}
+	searchtimes++;
 }
 function burysand() {
 	if(gethole) {
@@ -2135,10 +2187,27 @@ PS: He heals 5 HP each time he attacks you, and he also has armor!";
 		$(".alert-boss-fight:last").fadeIn("fast");
 	}
 }
+function championguy(step=1){
+story="\n\
+\n\
+       _                                             \\+/\n\
+   .&bull;'   '&bull;.          \"So, you've finally made it.\"   O\n\
+  /         \\                                        /|\\\n\
+ |           |                                        |\n\
+ |           |                                       / \\\n\
+  \\         /    <input type='button' value='Next >' onclick='championguy(2)'>                              \n\
+   '&bull;.   .&bull;'\n\
+     /   \\\n\
+    / | | \\\n\
+   / /| |\\ \\\n\
+  / / | | \\ \\\n\
+";
+makealert("champion-conversation","The Glorious Champion","It's time.<br><br><pre class='champion-story'>"+story+"</pre>",true);
+}
 function openthechestfromsomeone() {
 	if(cheststep==0) {
 		closemessage();
-		makealert("chest-locked","Locked","The chest is locked, you need a key to open it!<br><br><input type='button' onclick='openthechest()' class='mediumbutton' value='Open the chest'>",true);
+		makealert("chest-locked","Locked","The chest is locked. You need a key to open it!<br><br><input type='button' onclick='openthechest()' class='mediumbutton' value='Open the chest'>",true);
 	}
 	else if(cheststep==1) {
 		closemessage();
@@ -2210,7 +2279,7 @@ function openthechest() {
 	}
 }
 function getleague() {
-	if((endlesswave/5)<leagues.length){
+	if((endlesswave/5)<leagues.length-1){
 		return leagues[Math.floor(endlesswave/5)];
 	}
 	else{
@@ -2223,12 +2292,25 @@ function endlessgate() {
 	powerhp();
 	multiplier = 1.05**endlesswave;
 	ratio = (0.5 - Math.random())/5;
+	enemyweapons = ["Standard-issue Spear", "Standard-issue Sword", "Standard-issue Axe"];
+	speedmultipliers = [0.8, 1, 1.2];
+	damagemultipliers = [0.7, 1, 1.3];
+	pickedweapon = Math.floor(Math.random()*3);
 	gladiatorname = randomnames1[Math.floor(Math.random()*randomnames1.length)] + randomnames2[Math.floor(Math.random()*randomnames2.length)] + " the " + przydomki[Math.floor(Math.random()*przydomki.length)];
-	battle=makebattle(battleid,gladiatorname,Math.round(2000 * multiplier * (1+ratio)),Math.round(2000 * multiplier * (1+ratio)),"Standard-issue Sword",Math.round(100 * multiplier * (1-ratio)),"This is not you.",0,power,hp,hp,currentsword,false,"vs-endless-gate");
-	html="<div class=\"alert alert-vs-endless-gate\"><b>Wave "+(endlesswave+1).toLocaleString("en")+" - for glory!</b><br>Don't hold anything back!<br>"+battle.html+"</div>";
+	if(endlesswave != 29){
+		battle=makebattle(battleid,gladiatorname,Math.round(2000 * multiplier * (1+ratio)),Math.round(2000 * multiplier * (1+ratio)),enemyweapons[pickedweapon],Math.round(100 * multiplier * (1-ratio) * damagemultipliers[pickedweapon]),"This is not you.",0,power,hp,hp,currentsword,false,"vs-endless-gate",speedmultipliers[pickedweapon]);
+		html="<div class=\"alert alert-vs-endless-gate\"><b>Wave "+(endlesswave+1).toLocaleString("en")+" - for glory!</b><br>Don't hold anything back!<br>"+battle.html+"</div>";
+	}
+	else{
+		battle=makebattle(battleid,"Glorious Champion",10000,10000,"Champion's Halberd",500,"This could be you!",13,power,hp,hp,currentsword,false,"vs-endless-gate",0.8);
+		html="<div class=\"alert alert-vs-endless-gate\"><b>Wave "+(endlesswave+1).toLocaleString("en")+" - for glory!</b><br>Your final challenge is at hand. Go get 'em!<br>"+battle.html+"</div>";
+	}
 	$("#otheralerts").append(html);
 	battle.init();
 	$(".alert-vs-endless-gate:last").fadeIn("fast");
+}
+function glorypoints() {
+	makealert("glory-points", "Glory Points", "Assign the Glory Points you have earned to power up your machines!<br>You have assigned "+(glorylayout[0] + glorylayout[1] + glorylayout[2])+" out of "+Math.floor(endlesswave/5).toLocaleString("en")+" Glory Points.", true);
 }
 function localstoragehelp() {
 	snacks('It\'s a feature that allows the game to save progress in your browser. Technology!');
@@ -2392,12 +2474,15 @@ function loadgame(savecode) {
 		if(savecode.length>=86) { offhand=savecode[85]; } else { offhand = "none"; }
 		if(savecode.length>=87) { shieldlevel=parseInt(savecode[86]); } else { shieldlevel = 0; }
 		if(savecode.length>=88) { spentonenchant=parseInt(savecode[87]); } else { spentonenchant = 0; }
+		if(savecode.length>=89) { glorylayout[0]=parseInt(savecode[88]); } else { glorylayout[0] = 0; }
+		if(savecode.length>=90) { glorylayout[1]=parseInt(savecode[89]); } else { glorylayout[1] = 0; }
+		if(savecode.length>=91) { glorylayout[2]=parseInt(savecode[90]); } else { glorylayout[2] = 0; }
 		if(pizzaeaten && ovenlevel == 0) {
 			ovenlevel = 3;
 		}
 }
 function savegame(){
-	return btoa(goldbar+"|"+ironbar+"|"+gbps+"|"+goldmining+"|"+ibpt+"|"+ibtime+"|"+ironmining+"|"+items[0].owned+"|"+items[1].owned+"|"+items[2].owned+"|"+items[3].owned+"|"+items[4].owned+"|"+items[5].owned+"|"+items[6].owned+"|"+items[7].owned+"|"+items[8].owned+"|"+items[9].owned+"|"+items[10].owned+"|"+items[11].owned+"|"+items[12].owned+"|"+items[13].owned+"|"+items[14].owned+"|"+items[15].owned+"|"+items[16].owned+"|"+items[17].owned+"|"+items[18].owned+"|"+items[19].owned+"|"+items[20].owned+"|"+items[21].owned+"|"+items[22].owned+"|"+items[23].owned+"|"+items[24].owned+"|"+enchant_attack+"|"+enchant_defense+"|"+enchant_countdown+"|"+enchant_life+"|"+helmet+"|"+chestplate+"|"+pants+"|"+boots+"|"+theusername+"|"+theuserdesc+"|"+cheststep+"|"+searchtimes+"|"+shovelbroken+"|"+cursor+"|"+pizzaeaten+"|"+poisoned+"|"+chestunderground+"|"+talk+"|"+wob+"|"+buyfactory+"|"+skill+"|"+skilllvl+"|"+additionalattack+"|"+clickcloudcount+"|"+openchestcount+"|"+candybox+"|"+hpactive+"|"+airplanecountdown+"|"+digcountdown+"|"+digstep+"|"+currentsword+"|"+passthief+"|"+passworms+"|"+passgate+"|"+unlockenchant+"|"+unlockchest+"|"+beatboss+"|"+hasairplane+"|"+reachedclouds+"|"+defeatinvisiblebot+"|"+gethole+"|"+win+"|"+hasportal+"|"+cipherstep+"|"+activatemachine+"|"+autosave+"|"+autoattack+"|"+pizzacollected+"|"+weapontype+"|"+endlesswave+"|"+ovenlevel+"|"+items[25].owned+"|"+items[26].owned+"|"+offhand+"|"+shieldlevel+"|"+spentonenchant)+"encrypted";
+	return btoa(goldbar+"|"+ironbar+"|"+gbps+"|"+goldmining+"|"+ibpt+"|"+ibtime+"|"+ironmining+"|"+items[0].owned+"|"+items[1].owned+"|"+items[2].owned+"|"+items[3].owned+"|"+items[4].owned+"|"+items[5].owned+"|"+items[6].owned+"|"+items[7].owned+"|"+items[8].owned+"|"+items[9].owned+"|"+items[10].owned+"|"+items[11].owned+"|"+items[12].owned+"|"+items[13].owned+"|"+items[14].owned+"|"+items[15].owned+"|"+items[16].owned+"|"+items[17].owned+"|"+items[18].owned+"|"+items[19].owned+"|"+items[20].owned+"|"+items[21].owned+"|"+items[22].owned+"|"+items[23].owned+"|"+items[24].owned+"|"+enchant_attack+"|"+enchant_defense+"|"+enchant_countdown+"|"+enchant_life+"|"+helmet+"|"+chestplate+"|"+pants+"|"+boots+"|"+theusername+"|"+theuserdesc+"|"+cheststep+"|"+searchtimes+"|"+shovelbroken+"|"+cursor+"|"+pizzaeaten+"|"+poisoned+"|"+chestunderground+"|"+talk+"|"+wob+"|"+buyfactory+"|"+skill+"|"+skilllvl+"|"+additionalattack+"|"+clickcloudcount+"|"+openchestcount+"|"+candybox+"|"+hpactive+"|"+airplanecountdown+"|"+digcountdown+"|"+digstep+"|"+currentsword+"|"+passthief+"|"+passworms+"|"+passgate+"|"+unlockenchant+"|"+unlockchest+"|"+beatboss+"|"+hasairplane+"|"+reachedclouds+"|"+defeatinvisiblebot+"|"+gethole+"|"+win+"|"+hasportal+"|"+cipherstep+"|"+activatemachine+"|"+autosave+"|"+autoattack+"|"+pizzacollected+"|"+weapontype+"|"+endlesswave+"|"+ovenlevel+"|"+items[25].owned+"|"+items[26].owned+"|"+offhand+"|"+shieldlevel+"|"+spentonenchant+"|"+glorylayout[0]+"|"+glorylayout[1]+"|"+glorylayout[2])+"encrypted";
 }
 
 jQuery.fn.shake = function() {
@@ -2413,7 +2498,8 @@ jQuery.fn.shake = function() {
 
 /* BATTLE SYSTEM */
 
-function makebattle(id,name,hp,maxhp,weapon,damage,description,enemyascii,power,myhp,mymaxhp,myweapon,loop,param) {
+function makebattle(id,name,hp,maxhp,weapon,damage,description,enemyascii,power,myhp,mymaxhp,myweapon,loop,param,newspeed=1) {
+	enemyspeed = newspeed;
 	berserked = false;
 	enemyasciis=[];
 enemyasciis.push("\n\
@@ -2501,6 +2587,12 @@ enemyasciis.push("\n\
 _--~~  ~~---___.'/\n\
 ~-_o_)  ___----~~\\\n\
      `\\|");
+enemyasciis.push("\n\
+    \\+/\n\
+     O\n\
+    /|\\\n\
+     |\n\
+    / \\");
 output2="<tr><td>";
 output2=output2+"<pre style=\"opacity:0;\">\n\
      O\n\
@@ -2560,6 +2652,9 @@ else if(enemyascii==8) {
 else if(enemyascii==10) {
 	output2=output2+"<pre style=\"position:absolute;margin-top:-125px;\" class=\"enemy-"+id+"\">"+enemyasciis[enemyascii]+"</pre>";
 }
+else if(enemyascii==13) {
+	output2=output2+"<pre style=\"position:absolute;margin-top:-102px;\" class=\"enemy-"+id+"\">"+enemyasciis[enemyascii]+"</pre>";
+}
 else {
 	output2=output2+"<pre style=\"position:absolute;margin-top:-77px;\" class=\"enemy-"+id+"\">"+enemyasciis[enemyascii]+"</pre>";
 }
@@ -2577,11 +2672,17 @@ else if(name=="Zombie King") {
 	//output2=output2+"<img style=\"position:absolute;\" class=\"enemy-sword-"+id+"\" src=\"images/swordDiamond.png\">";
 }
 
-
+enemyspeeddisplay = "average"
+if(enemyspeed < 1){
+	enemyspeeddisplay = "fast";
+}
+if(enemyspeed > 1){
+	enemyspeeddisplay = "slow";
+}
 output2=output2+"</td></tr><tr><td>";
 output2=output2+"<span class=\"you-"+id+"\"><b>"+theusername+"</b></span> (<span class=\"player-"+id+"-hp\">"+myhp.toLocaleString("en")+"</span>/"+mymaxhp.toLocaleString("en")+")<br>Damage: "+power.toLocaleString("en")+"<br>Weapon: "+currentsword.substring(0, currentsword.indexOf('Sword')) + weapontype+"<br>\"<span class=\"you-desc-"+id+"\">"+theuserdesc+"</span>\"";
 output2=output2+"</td><td><div style=\"text-align:center;\">VS</div></td><td>";
-output2=output2+"<b>"+name+"</b> (<span class=\"enemy-"+id+"-hp\">"+hp.toLocaleString("en")+"</span>/"+maxhp.toLocaleString("en")+")<br>Damage: "+damage.toLocaleString("en")+"<br>Weapon: "+weapon+"<br>\""+description+"\"";
+output2=output2+"<b>"+name+"</b> (<span class=\"enemy-"+id+"-hp\">"+hp.toLocaleString("en")+"</span>/"+maxhp.toLocaleString("en")+")<br>Damage: "+damage.toLocaleString("en")+" ("+enemyspeeddisplay+")<br>Weapon: "+weapon+"<br>\""+description+"\"";
 output2=output2+"</td></tr>";
 
 output="<table id=\"battle-"+id+"\">"+output2+"</table><br><div class=\"buttons-"+id+"\"><input type=\"button\" value=\"Attack!\" class=\"button-attack-"+id+" smallbutton\" onclick=\"attackenemy("+id+","+power+","+hp+",'"+param+"',"+mymaxhp+")\">\n\
@@ -2596,16 +2697,20 @@ output="<table id=\"battle-"+id+"\">"+output2+"</table><br><div class=\"buttons-
 <input type=\"button\" value=\"["+items[18].owned.toLocaleString("en")+"] X\" class=\"button-potion-18-"+id+" smallbutton\" onclick=\"usepotion(18,"+id+")\">\n\
 <input type=\"button\" value=\"["+items[26].owned.toLocaleString("en")+"] Berserk\" class=\"button-potion-26-"+id+" smallbutton\" onclick=\"usepotion(26,"+id+")\"> <span class=\"potion-countdown-"+id+"\"></span></div>\n\
 <hr class=\"potion-separator-"+id+"\"><input type=\"button\" value=\"Flee!\" class='smallbutton flee-button' onclick=\"closemessage(); battle_ended();\">\n\
-<input type=\"button\" value=\"Toggle auto-attack\" class='mediumbutton flee-button' onclick=\"toggleautoattack("+id+");\">";
+<input type=\"button\" value=\"Toggle auto-attack\" class='mediumbutton' onclick=\"toggleautoattack("+id+");\">";
 	if(hp<=0) {
 		if(id != winningid) {
+			battlestop(true, true);
+			stop_battle_timers();
 			setTimeout(function(){winbattle(param,id);},1000);
 			winningid=id;
 		}
 	}
 	else if(myhp<=0) {
 		//lose
-		setTimeout(function(){closemessage(); battle_ended();},1000);
+		battlestop(true, true);
+		stop_battle_timers();
+		setTimeout(function(){closemessage(); lose_battle();},1000);
 	}
 	else {
 		instasused = 0;
@@ -2674,7 +2779,9 @@ function enemyattack(id,damage) {
 	}
 	else {
 		if(myhealthpoint(false,0)<=0) {
-			setTimeout(function(){closemessage(); battle_ended();},0);
+			battlestop(true, true);
+			stop_battle_timers();
+			setTimeout(function(){closemessage(); lose_battle();},1000);
 			//clearTiemout(asdasdf);
 		}
 		else {
@@ -2701,6 +2808,8 @@ function enemyattack(id,damage) {
 								$(".enemy-"+id+"-hp").html("0");
 								$(".button-attack-"+id).attr("disabled",true);
 								if(id!=winningid){
+									battlestop(true, true);
+									stop_battle_timers();
 									setTimeout(function(){winbattle(theparam(false,0),id);},1000);
 									winningid = id;
 								}
@@ -2708,13 +2817,20 @@ function enemyattack(id,damage) {
 							}
 
 						}
-						else if(isinvuln(false,0)==false) {
+						else {
 							myhp=myhealthpoint(false,0);
 							absorb=helmet+chestplate+pants+boots;
 							if(offhand=="Shield"){
 								absorb+=(shieldlevel*5)*((100-absorb)/100);
 							}
-							myhp-=damage-Math.round(damage*(absorb/100));
+							takendamage=damage-Math.round(damage*(absorb/100));
+							if(isinvuln(false,0)){
+								takendamage = Math.round(takendamage/3);
+							}
+							if(offhand=="Sash" && Math.random() < 0.25){
+								takendamage = 0;
+							}
+							myhp-=takendamage;
 							myhealthpoint(true,myhp);
 					}
 					if(myhealthpoint(false,0)<=0) {
@@ -2743,7 +2859,7 @@ function enemyattack(id,damage) {
 							$(".enemy-"+id+"-hp").html(hp.toLocaleString("en"));
 						}
 						// Schedule a new attack
-						enemy_attack_timer = setTimeout(function(){enemyattack(id,damage);},1800+Math.random()*1000);
+						enemy_attack_timer = setTimeout(function(){enemyattack(id,damage);},(1800+Math.random()*1000)*enemyspeed);
 					}
 				},200);
 			}
@@ -2877,7 +2993,7 @@ function drinkhealthpotion(id, mymaxhp) {
 		items[7].owned-=1;
 		checkhealthbutton(id);
 		checkthings();
-		myhp+=35;
+		myhp+=30;
 		powerhp();
 		if(myhp>mymaxhp) {
 			myhp=mymaxhp;
@@ -2892,7 +3008,7 @@ function usetheskill(id) {
 		mindelay = 20;
 		if(skill=="thunder") {
 			enemyhp=enemyhealthpoint(false,0);
-			enemyhp-=20+skilllvl*10;
+			enemyhp-=20*(skilllvl+1);
 			enemyhealthpoint(true,enemyhp);
 			if(enemyhealthpoint(false,0)<=0) {
 				enemyhealthpoint(true,0);
@@ -2903,6 +3019,8 @@ function usetheskill(id) {
 			setTimeout(function() {
 				$(".thunder-"+id).css("opacity","0");
 				if(enemyhealthpoint(false,0)<=0 && id != winningid) {
+					battlestop(true, true);
+					stop_battle_timers();
 					setTimeout(function(){winbattle(theparam(false,0),id);},1000);
 					winningid = id;
 				}
@@ -2952,6 +3070,8 @@ function usepotion(pid,id,havecooldown=true) {
 			enemyhealthpoint(true,hp);
 			$(".enemy-"+id+"-hp").html(hp.toLocaleString("en"));
 			if(enemyhealthpoint(false,0)<=0 && id != winningid) {
+				battlestop(true, true);
+				stop_battle_timers();
 				setTimeout(function(){winbattle(theparam(false,0),id);},1000);
 				winningid = id;
 			}
@@ -3080,6 +3200,11 @@ function battle_ended() {
 	removeBattle(battleid);
 	battleid++;
 }
+function lose_battle(){
+	battle_ended();
+	closemessage();
+	makealert("you-lost","You lost! :(","Better luck next time!",true);
+}
 
 function myhealthpoint(set,health) { if(!set) { return myhp; } else { myhp=health; } }
 function enemyhealthpoint(set,health) { if(!set) { return enemyhp; } else { enemyhp=health; } }
@@ -3110,7 +3235,9 @@ function winbattle(param,id) {
 	}
 	else if(param=="training"){
 		closemessage();
-		additionalattack+=1;
+		powerhp();
+		additionalattackincrease = 1 + Math.floor(hp/200);
+		additionalattack+=additionalattackincrease;
 		checkthings();
 	}
 	else if(param=="vs-monster"){
@@ -3248,14 +3375,19 @@ scroll='\n\
 		if(endlesswave%5==0){
 			leagueinfo="<br>You have advanced to the "+getleague()+" league!";
 		}
-		makealert("win-vs-gate","Wave Complete!","You defeated the enemy! You got "+reward+" gold bars and "+Math.floor(reward/2)+" iron bars!<br><br><input type='button' value=\"Go again!\" class='mediumbutton' onclick='endlessgate()'>"+leagueinfo,true);
+		if(endlesswave != 30){
+				makealert("win-vs-gate","Wave Complete!","You defeated the enemy! You got "+reward+" gold bars and "+Math.floor(reward/2)+" iron bars!<br><br><input type='button' value=\"Go again!\" class='mediumbutton' onclick='endlessgate()'>"+leagueinfo,true);
+		}
+		else{
+				makealert("win-vs-gate","Wave Complete!","You have defeated the Champion. His crown is now yours!<br>And yes, this <i>is</i> a temporary message for the beta. It will be a lot more epic in the final game, I promise!<br><br><input type='button' value=\"Go again!\" class='mediumbutton' onclick='endlessgate()'>"+leagueinfo,true);
+		}
 	}
 	if(param!="vs-rat" && param!="training"){
 		reward=enemyhealthpoint2(false,0);
 		goldbar+=reward;
 	}
 	if(param!="training" && additionalattack > 0){
-		additionalattack--;
+		additionalattack = Math.floor(additionalattack/2);
 	}
 }
 
@@ -3498,8 +3630,8 @@ function mixitems() {
 	}
 
 	else if (qty["11"] && qty["19"] && qty["goldbar"] &&
-		qty["goldbar"] % 2000 === 0 && qty["19"] % 20 === 0 &&
-		qty["goldbar"] / 2000 === qty["11"] && qty["19"] / 20 === qty["11"] &&
+		qty["goldbar"] % 2000 === 0 && qty["19"] % 100 === 0 &&
+		qty["goldbar"] / 2000 === qty["11"] && qty["19"] / 100 === qty["11"] &&
 		onlyContains(cldr, ["11", "19", "goldbar"])) {
 		snacks('You made ' + (qty["goldbar"] / 2000) + ' instant countdown potion(s)!');
 		items[15].owned += qty["goldbar"] / 2000;
@@ -3534,12 +3666,11 @@ function mixitems() {
 		snacks('You made a secret potion!');
 		items[20].owned++;
 	}
-	else if (qty["10"] && qty["11"] && qty["10"] === qty["11"] &&
+	else if (qty["10"] && qty["11"] && qty["10"]*2 === qty["11"] &&
 		onlyContains(cldr, ["10", "11"])) {
-		snacks('You made ' + qty["10"] + ' berserk potion(s)!');
-		items[26].owned += qty["10"];
+		snacks('You made ' + qty["11"] + ' berserk potion(s)!');
+		items[26].owned += qty["11"];
 	}
-
 
 	else if (qty["ironbar"] && qty["ironbar"] % 10 === 0 &&
 		onlyContains(cldr, ["ironbar"])) {
@@ -3560,7 +3691,7 @@ function mixitems() {
 
 function makebosshappy() {
 	closemessage();
-	makealert("how-to-make-boss-happy","Make your boss happier","To make him happier and get some extra gold bars, you can do these things:<br><br><input type='button' class='bigbutton' value='Kill some rats that enter the factory' onclick='killrats()'><br><input type='button' class='bigbutton' value='Help him decipher messages' onclick='ciphercode()'>",true);
+	makealert("how-to-make-boss-happy","Make your boss happier","To make him happier and get some extra gold bars, you can do these things:<br><br><input type='button' value='Kill some rats that sometimes enter the factory at night' onclick='killrats()'><br><input type='button' value='Help him decipher messages' onclick='ciphercode()'>",true);
 }
 function killrats() {
 	if(items[2].owned==0) {
@@ -3603,7 +3734,7 @@ function ciphercode() {
 		codetocipher="43 24 33 33 15 43 31 34 43 13 23 15 33";
 	}
 	else if(cipherstep==7) {
-		codetocipher="tg t &nbsp;lot ,d tm og t twdh odfcoywsbitln ieao n ti h otfmu odfcoyi h olelarau gmgaisesaslarner";
+		codetocipher="tg t  lot ,d tm og t twdh odfcoywsbitln ieao n ti h otfmu odfcoyi h olelarau gmgaisesaslarner";
 	}
 	else if(cipherstep==8) {
 		codetocipher="Li4uLiAuLS0tIC4uLiAuLi0gLi0uLiAuLSAuLi0gLi0tIC8gLiAuLi4gLS4<br>tLiAuLS0gLS4tIC8gLi4uLiAuLS0gLi0tLSAtLi4tIC4tLSAuLi0gLi0uLg==";
@@ -3659,7 +3790,7 @@ function battlevsgolems() {
 			ratname="Molten Golem"
 			ratdesc="Strike while the iron is hot!"
 		}
-		battle=makebattle(battleid,golemname,Math.round((hp+hpdivide)*(1+ratio)),Math.round((hp+hpdivide)*(1+ratio)),"Iron Hands",Math.round((basepower+basepower/5)*(1-ratio)),golemdesc,5,power,hp,hp,currentsword,false,"vs-golem");
+		battle=makebattle(battleid,golemname,Math.round((hp+hpdivide)*(1+ratio)),Math.round((hp+hpdivide)*(1+ratio)),"Iron Hands",Math.round((basepower+basepower/5)*(1-ratio)*1.2),golemdesc,5,power,hp,hp,currentsword,false,"vs-golem", 1.2);
 		html="<div class=\"alert alert-battle-golems\"><b>Golem!</b><br>Destroy it!<br><br>"+battle.html+"</div>";
 		$("#otheralerts").append(html);
 		battle.init();
@@ -3784,10 +3915,10 @@ function gethint() {
 	snacks(hints[cipherstep]);
 }
 
-function calculateTotalPrice(currentMachines, machinesToBuy, divisor) {
+function calculateTotalPrice(currentMachines, machinesToBuy, divisor, base=10) {
     let totalPrice = 0;
     for (let i = 0; i < machinesToBuy; i++) {
-        const price = 10 + Math.floor((currentMachines + i) * (currentMachines + i) / divisor);
+        const price = Math.floor(base + (currentMachines + i) * (currentMachines + i) / divisor);
         totalPrice += price;
     }
     return totalPrice;
@@ -3817,4 +3948,3 @@ function romanize(num) {
   }
   return roman;
 }
-
