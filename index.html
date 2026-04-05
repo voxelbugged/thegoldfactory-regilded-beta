@@ -11,9 +11,10 @@
 <head>
 	<meta charset="UTF-8">
 	<title>BETA - The Gold Factory: Regilded</title>
+  <script type="text/javascript" src="HtmlSanitizer.js"></script>
 	<script type="text/javascript" src="jquery.js"></script>
 	<script type="text/javascript" src="base.js"></script>
-  <script src="js-snackbar.js"></script>
+  <script type="text/javascript" src="js-snackbar.js"></script>
 
 	<link rel="stylesheet" type="text/css" href="style.css" media="all" />
   <link rel="stylesheet" href="js-snackbar.css">
@@ -55,7 +56,7 @@
 <div class="alert alert-equipment">
   <b>Equipment</b><br>
   <div id="equipmentsection-char">
-  <pre>
+  <pre id="render-guy">
      O
     /|\
      |
@@ -458,16 +459,25 @@ ______________________________________
 
 
 
-_____________________<span class="click laptop unselectable" title="A laptop">_/</span>_______________
+____________________ <span class="click laptop unselectable" title="A laptop">_/</span>_______________
 </pre>
 <pre class="dig-sign hidden unselectable">
 ______________________________________
-
+ 
+ 
+ 
+             <span class="click old-machine unselectable" title="An old machine">______</span>
+            <span class="click old-machine unselectable" title="An old machine">| .. _ |</span>
+____________<span class="click old-machine unselectable" title="An old machine">|______|</span>__________________
+</pre>
+<pre class="dig-altar hidden unselectable">
+______________________________________
+ 
                           <span class="click sign-dig unselectable" title="A sign">__</span>
                          <span class="click sign-dig unselectable" title="A sign">[__]</span>
-             <span class="click old-machine unselectable" title="An old machine">______</span>
-            <span class="click old-machine unselectable" title="An old machine">|      |</span>
-____________<span class="click old-machine unselectable" title="An old machine">|______|</span>__________________
+             
+               <span class="click sauce-altar unselectable" title="The Sauce Altar">\_._v_._/</span>
+___________<span class="click sauce-altar unselectable" title="The Sauce Altar">._x_/xXx|xXx\_x_.</span>__________
 </pre>
 </div>
 </div>

@@ -528,6 +528,9 @@ body.wob {
 	background:#15151b;
 	color:white;
 }
+body.wob.amo {
+	background:#000;
+}
 body.wob a {
 	color: rgb(150, 150, 255);
 }
@@ -573,6 +576,9 @@ body.wob .alert {
 	border:1px solid white;
 	border-width:1px 2px 2px 1px;
 }
+body.wob.amo .alert {
+	background:#000;
+}
 /*.alert:after {
 	content:'a';
 	position:fixed;
@@ -597,6 +603,9 @@ pre.building {
 }
 body.wob pre.building {
 	background:#15151b;
+}
+body.wob.amo pre.building {
+	background:#000;
 }
 pre.building.hidden, #underground .hidden, pre.underworld-building.hidden, pre.cloud.hidden {
 	display:none;
@@ -686,6 +695,10 @@ input[type=button] {
 	border-width: 1px 2px 2px 1px;
 	font-family:'Times New Roman';
 }
+.glorybutton
+{
+	width:10%;
+}
 .smallbutton
 {
 	width:23%;
@@ -707,6 +720,9 @@ body.wob input[type=button] {
 	border-width: 1px 2px 2px 1px;
 	color:white;
 	background:#15151b;
+}
+body.wob.amo input[type=button] {
+	background:#000;
 }
 input[type=button]:disabled {
 	color:black;
@@ -794,7 +810,7 @@ body.wob input[type=button]:enabled:active
 	right:0;
 	padding:10px;
 	border-left:1px solid black;
-	border-bottom:1px solid black;
+	border-bottom:2px solid black;
 	background:white;
 	z-index:999999;
 	min-width:10%;
@@ -802,7 +818,10 @@ body.wob input[type=button]:enabled:active
 body.wob #storage {
 	background:#15151b;
 	border-left:1px solid white;
-	border-bottom:1px solid white;
+	border-bottom:2px solid white;
+}
+body.wob.amo #storage {
+	background:#000;
 }
 #insidestorage, #insideequipment {
 	padding-left:20px;
@@ -822,11 +841,13 @@ body.wob #storage {
 pre[class^=dig-step-] {
 	cursor:pointer;
 	position:absolute;
-	background:white;
 	z-index:999;
 }
 body.wob pre[class^=dig-step-] {
 	background:#15151b;
+}
+body.wob.amo pre[class^=dig-step-] {
+	background:#000;
 }
 pre.dig-step-1 {
 	margin-top:-35px;
@@ -857,56 +878,58 @@ pre.mining {
 	z-index:1001;
 	left:70px;
 	margin-top:277px;
-	background:white;
 }
 pre.small-hole {
 	position:absolute;
 	z-index:1001;
 	left:481px;
 	margin-top:69px;
-	background:white;
 	width:50px;
 }
 pre.digging {
 	position:absolute;
-	background:white;
 	z-index:1001;
 	left:482px;
 	margin-top:54px;
 }
 pre.dig-get-chest {
 	position:absolute;
-	background:white;
 	z-index:1001;
 	left:700px;
 	margin-top:54px;
 }
 pre.dig-pizzas {
 	position:absolute;
-	background:white;
 	z-index:1001;
 	left:900px;
 	margin-top:54px;
 }
 pre.dig-laptop {
 	position:absolute;
-	background:white;
 	z-index:1001;
 	left:1150px;
 	margin-top:54px;
 }
 pre.dig-sign {
 	position:absolute;
-	background:white;
 	z-index:1001;
 	left:1400px;
 	margin-top:54px;
 }
-body.wob pre.mining, body.wob pre.small-hole, body.wob pre.digging, body.wob pre.dig-get-chest, body.wob pre.dig-pizzas, body.wob pre.dig-laptop, body.wob pre.dig-sign {
+pre.dig-altar {
+	position:absolute;
+	z-index:1001;
+	left:1650px;
+	margin-top:54px;
+}
+body.wob pre.mining, body.wob pre.small-hole, body.wob pre.digging, body.wob pre.dig-get-chest, body.wob pre.dig-pizzas, body.wob pre.dig-laptop, body.wob pre.dig-sign, body.wob pre.dig-altar
+{
 	background:#15151b;
 }
+body.wob.amo pre.mining, body.wob.amo pre.small-hole, body.wob.amo pre.digging, body.wob.amo pre.dig-get-chest, body.wob.amo pre.dig-pizzas, body.wob.amo pre.dig-laptop, body.wob.amo pre.dig-sign, body.wob.amo pre.dig-altar {
+	background:#000;
+}
 #credits {
-	background:white;
 	z-index:99999;
 	position:fixed;
 	right:0;
@@ -916,13 +939,12 @@ body.wob pre.mining, body.wob pre.small-hole, body.wob pre.digging, body.wob pre
 	border-top:1px solid black;
 }
 #version {
-	background:white;
 	z-index:99999;
 	position:fixed;
 	left:0;
 	bottom:0;
 	padding:7px;
-	border-right:1px solid black;
+	border-right:2px solid black;
 	border-top:1px solid black;
 }
 body.wob #credits {
@@ -930,10 +952,16 @@ body.wob #credits {
 	border-left:1px solid white;
 	border-top:1px solid white;
 }
+body.wob.amo #credits{
+	background:#000;
+}
 body.wob #version {
 	background:#15151b;
-	border-right:1px solid white;
+	border-right:2px solid white;
 	border-top:1px solid white;
+}
+body.wob.amo #version {
+	background: #000;
 }
 body.wob #credits {
 	border-right:none;
@@ -1022,28 +1050,24 @@ body.wob pre [type=button] {
 	position:absolute;
 	left:75px;
 	cursor:pointer;
-	background:white;
 	z-index:99999;
 }
 .thefox {
 	position:absolute;
 	left:200px;
 	cursor:pointer;
-	background:white;
 	z-index:9999;
 }
 .thehouse {
 	position:absolute;
 	left:300px;
 	cursor:pointer;
-	background:white;
 	z-index:9999;
 }
 .sand {
 	position:absolute;
 	left:400px;
 	cursor:pointer;
-	background:white;
 	z-index:9999;
 }
 .endlessgate {
@@ -1051,7 +1075,6 @@ body.wob pre [type=button] {
 	left:450px;
 	margin-top: -180px;
 	cursor:pointer;
-	background:white;
 	z-index:9999;
 }
 .hole {
@@ -1059,7 +1082,6 @@ body.wob pre [type=button] {
 	left:1050px;
 	width:120px;
 	top:233px;
-	background:white;
 	z-index:10000;
 }
 .sand.hidden, .hole.hidden {
@@ -1070,6 +1092,9 @@ body.wob pre [type=button] {
 }
 body.wob .theportal, body.wob .thefox, body.wob .thehouse, body.wob .sand, body.wob .hole {
 	background:#15151b;
+}
+body.wob.amo .theportal, body.wob.amo .thefox, body.wob.amo .thehouse, body.wob.amo .sand, body.wob.amo .hole {
+	background:#000;
 }
 .bsod {
 	background:rgb(0,0,200);
@@ -1153,4 +1178,8 @@ body.wob .bubble:before {
 @keyframes mover {
 	0% { transform: translateY(0); }
 	100% { transform: translateY(5px); }
+}
+body.evil {
+	background-image:radial-gradient(rgba(255,255,255,0.8)), url(./evil/wave.png);
+	background-size:cover;
 }
